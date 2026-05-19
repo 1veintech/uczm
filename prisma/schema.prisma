@@ -1,0 +1,336 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ ENUMS ============
+
+enum UserRole {
+  SUPER_ADMIN
+  COUNTY_AGENT
+  STATION_MASTER
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum StationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  DISABLED
+}
+
+enum PlanType {
+  BASIC
+  ADVANCED
+}
+
+enum AgentStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum ProblemType {
+  MISSING
+  DAMAGED
+  WRONG_ITEM
+  QUALITY
+  OTHER
+}
+
+enum ComplaintStatus {
+  PENDING
+  RESOLVED
+  ESCALATED
+}
+
+enum JobStatus {
+  HIRING
+  CLOSED
+}
+
+enum ApplicationStatus {
+  PENDING
+  HIRED
+  REJECTED
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum OrderStatus {
+  UNPAID
+  PAID
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum MaterialType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+
+// ============ MODELS ============
+
+model User {
+  id        String     @id @default(cuid())
+  name      String
+  email     String     @unique
+  phone     String?
+  password  String
+  role      UserRole
+  avatarUrl String?
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  station Station?
+  agent   Agent?
+}
+
+model Station {
+  id         String        @id @default(cuid())
+  userId     String        @unique
+  user       User          @relation(fields: [userId], references: [id])
+  name       String
+  phone      String
+  address    String
+  avatarUrl  String?
+  qrCodeUrl  String?
+  agentId    String?
+  agent      Agent?        @relation(fields: [agentId], references: [id])
+  planType   PlanType      @default(BASIC)
+  status     StationStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+
+  customers     Customer[]
+  complaints    Complaint[]
+  jobs          Job[]
+  hotProducts   HotProduct[]
+  products      Product[]
+  orders        Order[]
+  withdrawals   WithdrawalRequest[]
+}
+
+model Agent {
+  id           String       @id @default(cuid())
+  userId       String       @unique
+  user         User         @relation(fields: [userId], references: [id])
+  name         String
+  phone        String
+  region       String
+  regionBounds String?      @default("[]") // GeoJSON polygon coordinates for map display
+  centerLat    Float?       @default(39.9)  // Map center latitude
+  centerLng    Float?       @default(116.4) // Map center longitude
+  zoomLevel    Int?         @default(12)    // Default map zoom
+  commissionRate Float      @default(0.1)
+  basePrice    Float        @default(0)
+  status       AgentStatus  @default(ACTIVE)
+  createdAt    DateTime     @default(now())
+
+  stations         Station[]
+  marketingMaterials MarketingMaterial[]
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  openid    String   @unique
+  phone     String
+  nickname  String?
+  avatarUrl String?
+  stationId String
+  station   Station  @relation(fields: [stationId], references: [id])
+  createdAt DateTime @default(now())
+
+  complaints Complaint[]
+  orders     Order[]
+  addresses  Address[]
+  cartItems  CartItem[]
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  name       String
+  phone      String
+  province   String
+  city       String
+  district   String
+  detail     String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Complaint {
+  id           String          @id @default(cuid())
+  customerId   String
+  customer     Customer        @relation(fields: [customerId], references: [id])
+  stationId    String
+  station      Station         @relation(fields: [stationId], references: [id])
+  problemType  ProblemType
+  description  String
+  images       String          @default("[]") // JSON array of URLs
+  orderNo      String?
+  status       ComplaintStatus @default(PENDING)
+  resolveType  String?
+  resolveRemark String?
+  resolvedAt   DateTime?
+  createdAt    DateTime        @default(now())
+
+  @@index([stationId, status])
+  @@index([customerId])
+}
+
+model Job {
+  id                String      @id @default(cuid())
+  stationId         String
+  station           Station     @relation(fields: [stationId], references: [id])
+  title             String
+  requirements      String?
+  salary            String
+  workLocation      String
+  workLocationDetail String?
+  contactPhone      String?
+  status            JobStatus   @default(HIRING)
+  createdAt         DateTime    @default(now())
+
+  applications JobApplication[]
+}
+
+model JobApplication {
+  id        String            @id @default(cuid())
+  jobId     String
+  job       Job               @relation(fields: [jobId], references: [id])
+  name      String
+  phone     String
+  status    ApplicationStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+}
+
+model HotProduct {
+  id        String        @id @default(cuid())
+  stationId String
+  station   Station       @relation(fields: [stationId], references: [id])
+  title     String
+  imageUrl  String
+  price     Float
+  pddPath   String
+  sortOrder Int           @default(0)
+  status    ProductStatus @default(ACTIVE)
+  createdAt DateTime      @default(now())
+
+  @@index([stationId, sortOrder])
+}
+
+model Product {
+  id            String        @id @default(cuid())
+  stationId     String
+  station       Station       @relation(fields: [stationId], references: [id])
+  name          String
+  images        String        @default("[]") // JSON array of URLs
+  description   String?
+  price         Float
+  originalPrice Float?
+  stock         Int           @default(0)
+  salesCount    Int           @default(0)
+  status        ProductStatus @default(ACTIVE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([stationId, status])
+}
+
+model CartItem {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int      @default(1)
+  createdAt  DateTime @default(now())
+
+  @@unique([customerId, productId])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  orderNo         String      @unique
+  customerId      String
+  customer        Customer    @relation(fields: [customerId], references: [id])
+  stationId       String
+  station         Station     @relation(fields: [stationId], references: [id])
+  totalAmount     Float
+  status          OrderStatus @default(UNPAID)
+  receiverName    String
+  receiverPhone   String
+  receiverAddress String
+  logisticsCompany String?
+  logisticsNo     String?
+  remark          String?
+  payTime         DateTime?
+  shipTime        DateTime?
+  createdAt       DateTime    @default(now())
+
+  items OrderItem[]
+
+  @@index([stationId, status])
+  @@index([customerId])
+}
+
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product? @relation(fields: [productId], references: [id])
+  productName   String
+  productImage  String?
+  price         Float
+  quantity      Int
+  subtotal      Float
+}
+
+model WithdrawalRequest {
+  id         String           @id @default(cuid())
+  stationId  String
+  station    Station          @relation(fields: [stationId], references: [id])
+  amount     Float
+  status     WithdrawalStatus @default(PENDING)
+  bankInfo   String?
+  reviewedBy String?
+  reviewedAt DateTime?
+  createdAt  DateTime         @default(now())
+}
+
+model MarketingMaterial {
+  id          String       @id @default(cuid())
+  title       String
+  type        MaterialType
+  url         String
+  description String?
+  agentId     String?
+  agent       Agent?       @relation(fields: [agentId], references: [id])
+  createdAt   DateTime     @default(now())
+}
