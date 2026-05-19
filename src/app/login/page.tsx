@@ -80,37 +80,63 @@ export default function LoginPage() {
       setError("验证码格式不正确");
       return;
     }
+    setLoading(true);
     const userInfo = {
       nickname: `用户${phone.slice(-4)}`,
       phone,
     };
     localStorage.setItem("c_user", JSON.stringify(userInfo));
-    router.push("/");
+    setTimeout(() => {
+      router.push("/");
+    }, 300);
   };
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
+
     const account = DEMO_ACCOUNTS.find(
       (a) => a.email === email && a.password === password
     );
     if (account) {
       localStorage.setItem("user", JSON.stringify(account));
-      router.push(account.path);
+      setTimeout(() => {
+        router.push(account.path);
+      }, 200);
     } else {
       setError("账号或密码错误");
+      setLoading(false);
     }
   };
+
+  const [loading, setLoading] = useState(false);
 
   const quickLogin = (account: (typeof DEMO_ACCOUNTS)[0]) => {
     setEmail(account.email);
     setPassword(account.password);
+    // Auto login
+    setLoading(true);
+    setTimeout(() => {
+      localStorage.setItem("user", JSON.stringify(account));
+      router.push(account.path);
+    }, 300);
   };
 
   const quickMobileLogin = (phoneNumber: string) => {
     setPhone(phoneNumber);
     setCode("123456");
     setCodeSent(true);
+    // Auto login
+    setLoading(true);
+    const userInfo = {
+      nickname: `用户${phoneNumber.slice(-4)}`,
+      phone: phoneNumber,
+    };
+    localStorage.setItem("c_user", JSON.stringify(userInfo));
+    setTimeout(() => {
+      router.push("/");
+    }, 300);
   };
 
   return (
@@ -234,10 +260,23 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2"
+                disabled={loading}
+                className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <LogIn className="w-4 h-4" />
-                登录
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    登录中...
+                  </span>
+                ) : (
+                  <>
+                    <LogIn className="w-4 h-4" />
+                    登录
+                  </>
+                )}
               </button>
             </form>
           ) : (
@@ -298,10 +337,23 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2"
+                disabled={loading}
+                className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                登 录
-                <ArrowRight className="w-4 h-4" />
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    登录中...
+                  </span>
+                ) : (
+                  <>
+                    登 录
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </form>
           )}
