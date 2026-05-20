@@ -150,23 +150,23 @@ export function AdminStationsClient({ stations, agents }: { stations: StationDat
             </div>
             <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v ?? "ALL")}>
               <SelectTrigger className="w-full sm:w-32 bg-zinc-800 border-zinc-700 text-zinc-200"><SelectValue placeholder="状态" /></SelectTrigger>
-              <SelectContent className="bg-zinc-800 border-zinc-700">
-                <SelectItem value="ALL">全部状态</SelectItem>
-                {Object.entries(STATION_STATUS_LABELS).map(([key, label]) => (<SelectItem key={key} value={key}>{label}</SelectItem>))}
+              <SelectContent className="bg-zinc-800 border-zinc-700 text-zinc-200">
+                <SelectItem value="ALL" className="text-zinc-200 focus:text-zinc-100 focus:bg-zinc-700">全部状态</SelectItem>
+                {Object.entries(STATION_STATUS_LABELS).map(([key, label]) => (<SelectItem key={key} value={key} className="text-zinc-200 focus:text-zinc-100 focus:bg-zinc-700">{label}</SelectItem>))}
               </SelectContent>
             </Select>
             <Select value={planFilter} onValueChange={(v) => setPlanFilter(v ?? "ALL")}>
               <SelectTrigger className="w-full sm:w-32 bg-zinc-800 border-zinc-700 text-zinc-200"><SelectValue placeholder="版本" /></SelectTrigger>
-              <SelectContent className="bg-zinc-800 border-zinc-700">
-                <SelectItem value="ALL">全部版本</SelectItem>
-                {Object.entries(PLAN_TYPE_LABELS).map(([key, label]) => (<SelectItem key={key} value={key}>{label}</SelectItem>))}
+              <SelectContent className="bg-zinc-800 border-zinc-700 text-zinc-200">
+                <SelectItem value="ALL" className="text-zinc-200 focus:text-zinc-100 focus:bg-zinc-700">全部版本</SelectItem>
+                {Object.entries(PLAN_TYPE_LABELS).map(([key, label]) => (<SelectItem key={key} value={key} className="text-zinc-200 focus:text-zinc-100 focus:bg-zinc-700">{label}</SelectItem>))}
               </SelectContent>
             </Select>
             <Select value={agentFilter} onValueChange={(v) => setAgentFilter(v ?? "ALL")}>
               <SelectTrigger className="w-full sm:w-32 bg-zinc-800 border-zinc-700 text-zinc-200"><SelectValue placeholder="代理" /></SelectTrigger>
-              <SelectContent className="bg-zinc-800 border-zinc-700">
-                <SelectItem value="ALL">全部代理</SelectItem>
-                {uniqueAgents.map((agent) => (<SelectItem key={agent} value={agent}>{agent}</SelectItem>))}
+              <SelectContent className="bg-zinc-800 border-zinc-700 text-zinc-200">
+                <SelectItem value="ALL" className="text-zinc-200 focus:text-zinc-100 focus:bg-zinc-700">全部代理</SelectItem>
+                {uniqueAgents.map((agent) => (<SelectItem key={agent} value={agent} className="text-zinc-200 focus:text-zinc-100 focus:bg-zinc-700">{agent}</SelectItem>))}
               </SelectContent>
             </Select>
           </div>
@@ -254,10 +254,10 @@ export function AdminStationsClient({ stations, agents }: { stations: StationDat
               <SelectTrigger className="bg-zinc-800 border-zinc-700 text-zinc-200">
                 <SelectValue placeholder="选择代理区域" />
               </SelectTrigger>
-              <SelectContent className="bg-zinc-800 border-zinc-700">
-                <SelectItem value="">未分配</SelectItem>
+              <SelectContent className="bg-zinc-800 border-zinc-700 text-zinc-200">
+                <SelectItem value="" className="text-zinc-200 focus:text-zinc-100 focus:bg-zinc-700">未分配</SelectItem>
                 {agents.map((agent) => (
-                  <SelectItem key={agent.id} value={agent.id}>
+                  <SelectItem key={agent.id} value={agent.id} className="text-zinc-200 focus:text-zinc-100 focus:bg-zinc-700">
                     {agent.name} - {agent.region}
                   </SelectItem>
                 ))}

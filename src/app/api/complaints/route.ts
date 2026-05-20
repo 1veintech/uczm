@@ -19,18 +19,27 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const customerId = searchParams.get("customerId");
+    const phone = searchParams.get("phone");
+    const status = searchParams.get("status");
 
-    // For demo, use first customer if no ID provided
-    const customer = customerId
-      ? await prisma.customer.findUnique({ where: { id: customerId } })
-      : await prisma.customer.findFirst();
+    // 按手机号或客户ID查找客户，确保数据隔离
+    let customer = null;
+    if (customerId) {
+      customer = await prisma.customer.findUnique({ where: { id: customerId } });
+    } else if (phone) {
+      customer = await prisma.customer.findFirst({ where: { phone } });
+    }
 
     if (!customer) {
       return NextResponse.json({ complaints: [] });
     }
 
     const complaints = await prisma.complaint.findMany({
-      where: { customerId: customer.id },
+      where: {
+        customerId: customer.id,
+        ...(status === "PENDING" ? { status: "PENDING" } :
+           status === "RESOLVED" ? { status: { in: ["RESOLVED", "ESCALATED"] } } : {}),
+      },
       include: {
         station: { select: { name: true } },
       },

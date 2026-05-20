@@ -31,10 +31,25 @@ export default function ComplaintPage() {
     }
   }, []);
 
-  const handleAddImage = () => {
-    if (images.length >= 4) return;
-    const newImage = `https://picsum.photos/seed/complaint${Date.now()}/200/200`;
-    setImages([...images, newImage]);
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach((file) => {
+      if (images.length >= 4) return;
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("图片大小不能超过5MB");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImages((prev) => {
+          if (prev.length >= 4) return prev;
+          return [...prev, reader.result as string];
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = "";
   };
 
   const handleRemoveImage = (index: number) => {
@@ -58,6 +73,15 @@ export default function ComplaintPage() {
 
     setSubmitting(true);
     try {
+      // 先根据手机号查找客户ID
+      const lookupRes = await fetch(`/api/customers/lookup?phone=${user.phone}`);
+      const lookupData = await lookupRes.json();
+      if (!lookupData.customer) {
+        toast.error("未找到您的账户信息，请重新登录");
+        setSubmitting(false);
+        return;
+      }
+
       const res = await fetch("/api/complaints", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,6 +90,7 @@ export default function ComplaintPage() {
           description,
           orderNo: orderNo || undefined,
           images,
+          customerId: lookupData.customer.id,
         }),
       });
 
@@ -110,7 +135,7 @@ export default function ComplaintPage() {
             继续反馈
           </button>
           <Link
-            href="/complaint/history"
+            href={`/complaint/history?phone=${user?.phone || ""}`}
             className="px-5 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium shadow-sm shadow-blue-500/20 active:scale-95 transition-transform"
           >
             查看售后记录
@@ -193,7 +218,7 @@ export default function ComplaintPage() {
             上传图片 <span className="text-gray-400 font-normal">(最多4张)</span>
           </h3>
           <p className="text-xs text-gray-400 mb-3">
-            拍照或上传相关图片，有助于我们更快处理
+            手机可拍照或从相册选择，电脑可选择本地图片
           </p>
           <div className="flex flex-wrap gap-2">
             {images.map((img, index) => (
@@ -209,13 +234,16 @@ export default function ComplaintPage() {
               </div>
             ))}
             {images.length < 4 && (
-              <button
-                onClick={handleAddImage}
-                className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-300 hover:text-blue-400 transition-colors"
-              >
+              <label className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-300 hover:text-blue-400 transition-colors cursor-pointer">
                 <Camera size={18} />
-                <span className="text-[10px]">添加图片</span>
-              </button>
+                <span className="text-[10px]">点击上传</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </label>
             )}
           </div>
         </div>
