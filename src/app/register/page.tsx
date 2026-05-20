@@ -15,6 +15,7 @@ import {
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [password, setPassword] = useState("");
@@ -23,31 +24,51 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [devCode, setDevCode] = useState("");
   const [error, setError] = useState("");
-  const [sentCode, setSentCode] = useState("");
 
-  const handleSendCode = () => {
+  const handleSendCode = async () => {
     if (phone.length !== 11) {
       setError("请输入正确的手机号");
       return;
     }
-    // 生成6位验证码
-    const newCode = String(Math.floor(100000 + Math.random() * 900000));
-    setSentCode(newCode);
-    setCodeSent(true);
-    setCountdown(60);
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
+    setError("");
+    setSending(true);
+
+    try {
+      const res = await fetch("/api/sms/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
       });
-    }, 1000);
+      const data = await res.json();
+
+      if (data.success) {
+        setCodeSent(true);
+        setCountdown(60);
+        if (data.code) {
+          setDevCode(data.code);
+        }
+        const timer = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        setError(data.message || "发送失败");
+      }
+    } catch {
+      setError("网络错误，请重试");
+    } finally {
+      setSending(false);
+    }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -55,8 +76,8 @@ export default function RegisterPage() {
       setError("请输入正确的手机号");
       return;
     }
-    if (!code || code.length < 4) {
-      setError("请输入正确的验证码");
+    if (!code || code.length !== 6) {
+      setError("请输入6位验证码");
       return;
     }
     if (!password || password.length < 6) {
@@ -69,15 +90,31 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    // 模拟注册成功，自动登录
-    const userInfo = {
-      nickname: nickname || `用户${phone.slice(-4)}`,
-      phone,
-    };
-    localStorage.setItem("c_user", JSON.stringify(userInfo));
-    setTimeout(() => {
-      router.push("/");
-    }, 500);
+    try {
+      // 验证验证码
+      const res = await fetch("/api/sms/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, code }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        // 注册成功，自动登录
+        const userInfo = {
+          nickname: nickname || `用户${phone.slice(-4)}`,
+          phone,
+        };
+        localStorage.setItem("c_user", JSON.stringify(userInfo));
+        router.push("/");
+      } else {
+        setError(data.message || "验证码错误");
+        setLoading(false);
+      }
+    } catch {
+      setError("网络错误，请重试");
+      setLoading(false);
+    }
   };
 
   return (
@@ -140,18 +177,18 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={handleSendCode}
-                disabled={phone.length !== 11 || countdown > 0}
+                disabled={phone.length !== 11 || countdown > 0 || sending}
                 className="absolute inset-y-1.5 right-1.5 px-3 rounded-lg text-xs font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-blue-50 text-blue-500 hover:bg-blue-100"
               >
-                {countdown > 0 ? `${countdown}s` : codeSent ? "重新发送" : "获取验证码"}
+                {sending ? "发送中..." : countdown > 0 ? `${countdown}s` : codeSent ? "重新发送" : "获取验证码"}
               </button>
             </div>
 
-            {/* 演示模式：显示验证码 */}
-            {sentCode && (
+            {/* 开发环境显示验证码 */}
+            {devCode && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
-                <p className="text-xs text-amber-600 mb-1">演示模式 · 验证码已发送</p>
-                <p className="text-2xl font-bold text-amber-700 tracking-widest">{sentCode}</p>
+                <p className="text-xs text-amber-600 mb-1">短信验证码（演示模式）</p>
+                <p className="text-2xl font-bold text-amber-700 tracking-widest">{devCode}</p>
               </div>
             )}
 
