@@ -26,6 +26,7 @@ export default function LoginPage() {
   const [code, setCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [sentCode, setSentCode] = useState("");
 
   // C端: 手机号 + 密码
   const [mobilePassword, setMobilePassword] = useState("");
@@ -38,6 +39,9 @@ export default function LoginPage() {
 
   const handleSendCode = () => {
     if (phone.length !== 11) return;
+    // 生成6位验证码
+    const newCode = String(Math.floor(100000 + Math.random() * 900000));
+    setSentCode(newCode);
     setCodeSent(true);
     setCountdown(60);
     const timer = setInterval(() => {
@@ -254,6 +258,14 @@ export default function LoginPage() {
                       {countdown > 0 ? `${countdown}s` : codeSent ? "重新发送" : "获取验证码"}
                     </button>
                   </div>
+
+                  {/* 演示模式：显示验证码 */}
+                  {sentCode && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+                      <p className="text-xs text-amber-600 mb-1">演示模式 · 验证码已发送</p>
+                      <p className="text-2xl font-bold text-amber-700 tracking-widest">{sentCode}</p>
+                    </div>
+                  )}
 
                   {error && (
                     <div className="text-red-500 text-sm text-center bg-red-50 rounded-lg p-2">{error}</div>

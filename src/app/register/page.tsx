@@ -24,12 +24,16 @@ export default function RegisterPage() {
   const [codeSent, setCodeSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [error, setError] = useState("");
+  const [sentCode, setSentCode] = useState("");
 
   const handleSendCode = () => {
     if (phone.length !== 11) {
       setError("请输入正确的手机号");
       return;
     }
+    // 生成6位验证码
+    const newCode = String(Math.floor(100000 + Math.random() * 900000));
+    setSentCode(newCode);
     setCodeSent(true);
     setCountdown(60);
     const timer = setInterval(() => {
@@ -142,6 +146,14 @@ export default function RegisterPage() {
                 {countdown > 0 ? `${countdown}s` : codeSent ? "重新发送" : "获取验证码"}
               </button>
             </div>
+
+            {/* 演示模式：显示验证码 */}
+            {sentCode && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+                <p className="text-xs text-amber-600 mb-1">演示模式 · 验证码已发送</p>
+                <p className="text-2xl font-bold text-amber-700 tracking-widest">{sentCode}</p>
+              </div>
+            )}
 
             {/* 昵称 */}
             <div className="relative">
