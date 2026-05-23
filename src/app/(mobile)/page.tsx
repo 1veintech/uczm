@@ -1,12 +1,54 @@
 import { prisma } from "@/lib/prisma";
-import { Phone, MapPin, AlertTriangle, Briefcase, Package, User, ChevronRight, Clock, CheckCircle, ArrowRight, History } from "lucide-react";
 import Link from "next/link";
+import {
+  ArrowRight,
+  BriefcaseBusiness,
+  ChevronRight,
+  Clock3,
+  Headphones,
+  MapPin,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  Star,
+  Truck,
+} from "lucide-react";
+import { HomeComplaints, HomeStats } from "./home-complaints";
 
-const quickActions = [
-  { icon: AlertTriangle, label: "售后报损", href: "/complaint", color: "from-orange-400 to-red-500", desc: "缺货/破损？点这里" },
-  { icon: Briefcase, label: "招聘信息", href: "/jobs", color: "from-blue-400 to-blue-600", desc: "找兼职/全职" },
-  { icon: Package, label: "我的订单", href: "/orders", color: "from-emerald-400 to-emerald-600", desc: "查看订单状态" },
-  { icon: User, label: "个人中心", href: "/profile", color: "from-purple-400 to-purple-600", desc: "管理个人信息" },
+const serviceShortcuts = [
+  {
+    label: "售后处理",
+    desc: "异常订单快速反馈",
+    href: "/complaint",
+    icon: Headphones,
+    color: "from-sky-500 to-blue-600",
+  },
+  {
+    label: "严选商场",
+    desc: "站长精选好物",
+    href: "/mall",
+    icon: ShoppingBag,
+    color: "from-emerald-500 to-teal-500",
+  },
+  {
+    label: "附近岗位",
+    desc: "本地岗位直招",
+    href: "/jobs",
+    icon: BriefcaseBusiness,
+    color: "from-indigo-500 to-blue-500",
+  },
+  {
+    label: "订单追踪",
+    desc: "履约状态同步",
+    href: "/orders",
+    icon: Truck,
+    color: "from-amber-400 to-orange-500",
+  },
+];
+
+const fallbackJobs = [
+  { title: "分拣员", salary: "¥5k-7k", workLocation: "应县城东站", workLocationDetail: "10:00-19:00" },
+  { title: "配送司机", salary: "¥7k-9k", workLocation: "平城区仓配点", workLocationDetail: "08:30-18:30" },
 ];
 
 export default async function HomePage() {
@@ -15,241 +57,200 @@ export default async function HomePage() {
     include: {
       hotProducts: { where: { status: "ACTIVE" }, orderBy: { sortOrder: "asc" }, take: 6 },
       jobs: { where: { status: "HIRING" }, take: 2 },
-      complaints: {
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        include: { customer: true },
-      },
     },
   });
 
   if (!station) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <p className="text-slate-400 text-sm">暂无可用站点</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#F6F8FC] px-6">
+        <p className="text-sm text-slate-500">暂无可用服务站</p>
       </div>
     );
   }
 
-  // Count complaints by status
-  const pendingCount = station.complaints.filter(c => c.status === "PENDING").length;
-  const resolvedCount = station.complaints.filter(c => c.status === "RESOLVED").length;
+  const activeJobs = station.jobs.length > 0 ? station.jobs : fallbackJobs;
+  const hotProductDetailHref = station.hotProducts[0]?.pddPath || "/mall";
 
   return (
-    <div className="pb-6 bg-slate-50 min-h-screen">
-      {/* Station Header - Premium Design */}
-      <div className="relative overflow-hidden rounded-b-[32px] bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 px-5 pt-14 pb-10 shadow-xl shadow-blue-600/20">
-        {/* Decorative Elements */}
-        <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/[0.08]" />
-        <div className="absolute top-24 -left-12 w-36 h-36 rounded-full bg-white/[0.04]" />
-        <div className="absolute -bottom-10 right-8 w-24 h-24 rounded-full bg-white/[0.06]" />
-        <div className="absolute top-6 right-20 w-3 h-3 rounded-full bg-white/20" />
-        <div className="absolute top-16 right-32 w-2 h-2 rounded-full bg-white/15" />
-        <div className="absolute bottom-16 left-16 w-2 h-2 rounded-full bg-white/20" />
+    <div className="min-h-screen bg-[#F5F8FC] pb-8 text-slate-950">
+      <section className="relative overflow-hidden rounded-b-[32px] bg-[#07111F] px-4 pb-24 pt-5 text-white shadow-[0_26px_70px_rgba(7,17,31,0.34)]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_8%,rgba(45,212,191,0.28),transparent_30%),radial-gradient(circle_at_92%_16%,rgba(59,130,246,0.34),transparent_34%),linear-gradient(145deg,#07111F_0%,#0B2542_52%,#0D4C68_100%)]" />
+        <div className="absolute inset-0 opacity-[0.14] [background-image:linear-gradient(rgba(255,255,255,0.18)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:30px_30px]" />
+        <div className="absolute -right-16 top-28 h-44 w-44 rounded-full border border-cyan-200/20 bg-cyan-300/10 blur-sm" />
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl font-bold text-white shadow-lg">
-              {station.name[0]}
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/12 ring-1 ring-white/20 backdrop-blur">
+              <ShieldCheck size={21} />
             </div>
-            <div className="flex-1">
-              <h1 className="text-xl font-bold text-white tracking-wide">{station.name}</h1>
-              <p className="text-blue-100/80 text-xs mt-1 flex items-center gap-1">
-                <MapPin size={12} />
-                {station.address}
-              </p>
+            <div>
+              <p className="text-sm font-semibold">优采智管</p>
+              <p className="text-[11px] text-sky-100/70">站长私域服务中枢</p>
             </div>
           </div>
-          <a
-            href={`tel:${station.phone}`}
-            className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md rounded-full px-5 py-2.5 text-sm font-medium text-white hover:bg-white/30 transition-all active:scale-95 shadow-lg shadow-blue-900/10"
+          <Link
+            href="/profile"
+            className="rounded-full border border-white/14 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/85 backdrop-blur"
           >
-            <Phone size={14} />
-            联系站长
-          </a>
+            我的
+          </Link>
         </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="px-4 -mt-5 relative z-10">
-        <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/60 p-4 grid grid-cols-4 gap-2">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <Link
-                key={action.href}
-                href={action.href}
-                className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform py-1"
-              >
-                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-md`}>
-                  <Icon size={22} className="text-white" />
-                </div>
-                <span className="text-[11px] text-gray-700 font-semibold">{action.label}</span>
-                <span className="text-[9px] text-gray-400">{action.desc}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* After-Sales / Complaint Section - TOP PRIORITY */}
-      <section className="mt-5 px-4">
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-50">
-          {/* Header */}
-          <div className="px-4 pt-4 pb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-1.5 h-5 bg-gradient-to-b from-orange-400 to-red-500 rounded-full" />
-                <h2 className="text-base font-bold text-gray-800">售后动态</h2>
-              </div>
-              <Link href="/complaint" className="flex items-center gap-1 text-xs text-blue-500 font-medium">
-                我要反馈 <ChevronRight size={14} />
-              </Link>
-            </div>
-
-            {/* Stats Row - clickable */}
-            <div className="flex gap-2 mt-3">
-              <Link href="/complaint/history?status=PENDING" className="flex-1 bg-orange-50 rounded-xl p-2.5 text-center active:scale-95 transition-transform">
-                <p className="text-lg font-bold text-orange-500">{pendingCount}</p>
-                <p className="text-[10px] text-orange-400">待处理</p>
-              </Link>
-              <Link href="/complaint/history?status=RESOLVED" className="flex-1 bg-green-50 rounded-xl p-2.5 text-center active:scale-95 transition-transform">
-                <p className="text-lg font-bold text-green-500">{resolvedCount}</p>
-                <p className="text-[10px] text-green-400">已处理</p>
-              </Link>
-              <Link href="/complaint/history" className="flex-1 bg-blue-50 rounded-xl p-2.5 text-center active:scale-95 transition-transform">
-                <p className="text-lg font-bold text-blue-500">{station.complaints.length}</p>
-                <p className="text-[10px] text-blue-400">总计</p>
-              </Link>
-            </div>
+        <div className="relative z-10 pt-8">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-medium text-cyan-50 backdrop-blur">
+            <Sparkles size={13} />
+            私域经营 · 售后协同 · 本地服务
           </div>
+          <h1 className="text-[32px] font-semibold leading-tight tracking-[-0.01em]">
+            {station.name}
+          </h1>
+          <p className="mt-3 flex items-start gap-1.5 text-sm leading-6 text-slate-200">
+            <MapPin className="mt-1 h-4 w-4 flex-none text-cyan-200" />
+            <span>{station.address}</span>
+          </p>
 
-          {/* Complaint List */}
-          {station.complaints.length > 0 ? (
-            <div className="border-t border-gray-50">
-              {station.complaints.slice(0, 3).map((complaint, idx) => (
-                <Link key={complaint.id} href={`/complaint/${complaint.id}`} className={`flex items-start gap-3 px-4 py-3 active:bg-gray-50 transition-colors ${idx < 2 ? 'border-b border-gray-50' : ''}`}>
-                  <div className={`mt-0.5 w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    complaint.status === "RESOLVED" ? "bg-green-100" :
-                    complaint.status === "ESCALATED" ? "bg-red-100" : "bg-orange-100"
-                  }`}>
-                    {complaint.status === "RESOLVED" ? (
-                      <CheckCircle size={14} className="text-green-500" />
-                    ) : complaint.status === "ESCALATED" ? (
-                      <AlertTriangle size={14} className="text-red-500" />
-                    ) : (
-                      <Clock size={14} className="text-orange-500" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-gray-700">
-                        {complaint.customer?.nickname || "客户"}
-                      </span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                        complaint.status === "RESOLVED" ? "bg-green-100 text-green-600" :
-                        complaint.status === "ESCALATED" ? "bg-red-100 text-red-600" : "bg-orange-100 text-orange-600"
-                      }`}>
-                        {complaint.status === "RESOLVED" ? "已处理" :
-                         complaint.status === "ESCALATED" ? "已升级" : "待处理"}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{complaint.description}</p>
-                    <p className="text-[10px] text-gray-400 mt-1">{new Date(complaint.createdAt).toLocaleString("zh-CN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
-                  </div>
-                  <ChevronRight size={14} className="text-gray-300 mt-1 flex-shrink-0" />
-                </Link>
-              ))}
-              {station.complaints.length > 3 && (
-                <Link href="/complaint/history" className="flex items-center justify-center gap-1 py-2.5 text-xs text-blue-500 font-medium border-t border-gray-50 active:bg-gray-50 transition-colors">
-                  查看全部售后记录 <ChevronRight size={14} />
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div className="border-t border-gray-50 px-4 py-8 text-center">
-              <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-2">
-                <CheckCircle size={24} className="text-green-400" />
+          <div className="mt-6 rounded-[24px] border border-white/14 bg-white/[0.09] p-4 shadow-2xl shadow-slate-950/20 backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs text-slate-300">今日服务状态</p>
+                <p className="mt-1 text-lg font-semibold">售后、商场、招聘统一响应</p>
               </div>
-              <p className="text-xs text-gray-400">暂无售后记录，一切正常！</p>
+              <span className="rounded-full bg-emerald-400/14 px-3 py-1 text-xs font-semibold text-emerald-200">
+                在线
+              </span>
             </div>
-          )}
+            <HomeStats hotProductCount={station.hotProducts.length} hotProductHref={hotProductDetailHref} />
+          </div>
         </div>
       </section>
 
-      {/* Hot Products Section */}
-      {station.hotProducts.length > 0 && (
-        <section className="mt-4 px-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-gray-800 flex items-center gap-1.5">
-              <span className="w-1 h-4 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full" />
-              精选好物
-            </h2>
-            <Link href="/mall" className="flex items-center gap-1 text-xs text-blue-500 font-medium">
-              去商城逛逛 <ArrowRight size={12} />
+      <section className="relative z-10 -mt-16 px-4">
+        <div className="rounded-[28px] border border-white/80 bg-white/92 p-3 shadow-[0_24px_70px_rgba(15,47,107,0.16)] backdrop-blur-xl">
+          <div className="mb-3 flex items-center justify-between px-1">
+            <div>
+              <p className="text-xs font-medium text-slate-500">快捷入口</p>
+              <h2 className="text-base font-semibold text-slate-950">服务模块</h2>
+            </div>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-medium text-slate-500">
+              4个入口
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {serviceShortcuts.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="group rounded-[22px] border border-slate-100 bg-gradient-to-b from-white to-slate-50 p-4 shadow-sm transition-transform active:scale-[0.98]"
+                >
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br ${item.color} text-white shadow-lg shadow-blue-500/15`}>
+                    <Icon size={20} />
+                  </div>
+                  <p className="mt-3 text-sm font-semibold text-slate-950">{item.label}</p>
+                  <p className="mt-1 text-[11px] leading-4 text-slate-500">{item.desc}</p>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 pt-5">
+        <div className="rounded-[28px] bg-slate-950 p-4 text-white shadow-[0_22px_60px_rgba(15,23,42,0.2)]">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-cyan-200">站长严选</p>
+              <h2 className="mt-1 text-lg font-semibold">今日爆品橱窗</h2>
+            </div>
+            <Link href="/mall" className="flex items-center gap-1 rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/85">
+              进入商场 <ArrowRight size={13} />
             </Link>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-            {station.hotProducts.map((product) => (
+
+          <div className="mt-4 flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
+            {station.hotProducts.map((product, index) => (
               <Link
                 key={product.id}
-                href={`/mall/${product.id}`}
-                className="flex-shrink-0 w-[140px] active:scale-[0.97] transition-transform"
+                href={product.pddPath}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-[158px] flex-shrink-0 overflow-hidden rounded-[22px] bg-white text-slate-950 shadow-xl shadow-slate-950/20 transition-transform active:scale-[0.98]"
               >
-                <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-50 hover:shadow-md transition-shadow">
-                  <div className="aspect-square relative">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={product.imageUrl || `https://picsum.photos/seed/${product.id}/200/200`}
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-3">
-                    <p className="text-xs text-gray-800 font-medium line-clamp-2 leading-snug h-9">{product.title}</p>
-                    <p className="text-base font-bold text-blue-600 mt-2">
-                      <span className="text-[11px]">¥</span>{product.price.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Recent Jobs */}
-      {station.jobs.length > 0 && (
-        <section className="mt-4 px-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-bold text-gray-800 flex items-center gap-1.5">
-              <span className="w-1 h-4 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full" />
-              最新招聘
-            </h2>
-            <Link href="/jobs" className="flex items-center gap-1 text-xs text-blue-500 font-medium">
-              查看更多 <ChevronRight size={12} />
-            </Link>
-          </div>
-          <div className="flex flex-col gap-2.5">
-            {station.jobs.map((job) => (
-              <Link key={job.id} href="/jobs" className="bg-white rounded-2xl shadow-sm p-4 active:scale-[0.98] transition-transform border border-gray-50">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-gray-800 truncate">{job.title}</h3>
-                    <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                      <MapPin size={11} className="text-blue-400" />
-                      {job.workLocation}
-                    </p>
-                  </div>
-                  <span className="flex-shrink-0 ml-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[11px] font-bold shadow-sm shadow-blue-500/20">
-                    {job.salary}
+                <div className="relative aspect-[1.05] overflow-hidden bg-slate-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={product.imageUrl || `https://picsum.photos/seed/${product.id}/300/300`}
+                    alt={product.title}
+                    className="h-full w-full object-cover"
+                  />
+                  <span className="absolute left-3 top-3 rounded-full bg-slate-950/72 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur">
+                    TOP {index + 1}
                   </span>
                 </div>
+                <div className="p-3">
+                  <p className="line-clamp-2 min-h-[38px] text-xs font-semibold leading-5 text-slate-800">
+                    {product.title}
+                  </p>
+                  <div className="mt-3 flex items-end justify-between">
+                    <p className="text-base font-bold text-blue-600">¥{product.price.toFixed(2)}</p>
+                    <ChevronRight size={15} className="text-slate-300" />
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+
+      <section className="px-4 pt-5">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-blue-600">本地岗位</p>
+            <h2 className="text-lg font-semibold text-slate-950">附近招工</h2>
+          </div>
+          <Link href="/jobs" className="text-xs font-semibold text-blue-600">查看更多</Link>
+        </div>
+        <div className="space-y-3">
+          {activeJobs.map((job) => (
+            <Link
+              key={job.title}
+              href="/jobs"
+              className="flex items-center justify-between gap-4 rounded-[24px] border border-white bg-white px-4 py-4 shadow-[0_16px_42px_rgba(15,47,107,0.09)]"
+            >
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <Star size={14} className="fill-amber-300 text-amber-300" />
+                  <p className="truncate text-sm font-semibold text-slate-950">{job.title}</p>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-500">{job.workLocation}</p>
+                <p className="mt-2 flex items-center gap-1 text-[11px] text-slate-400">
+                  <Clock3 size={12} />
+                  {job.workLocationDetail || "时间面议"}
+                </p>
+              </div>
+              <span className="flex-none rounded-full bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-600">
+                {job.salary}
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="px-4 pb-2 pt-5">
+        <div className="rounded-[28px] border border-white bg-white p-4 shadow-[0_18px_48px_rgba(15,47,107,0.1)]">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-blue-600">服务进展</p>
+              <h2 className="text-lg font-semibold text-slate-950">售后动态</h2>
+            </div>
+            <Link href="/complaint/history" className="text-xs font-semibold text-blue-600">
+              全部记录
+            </Link>
+          </div>
+          <HomeComplaints />
+        </div>
+      </section>
     </div>
   );
 }

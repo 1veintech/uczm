@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAgentOrAdmin } from "@/lib/api-auth";
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { user, error } = await requireAgentOrAdmin();
+  if (error) return error;
+
   const { id } = await params;
   const { agentId } = await req.json();
 

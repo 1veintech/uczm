@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/api-auth";
 
 export async function GET() {
   const products = await prisma.hotProduct.findMany({
@@ -9,13 +10,25 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const { user, error } = await getAuthUser();
+  if (error) return error;
+
   try {
     const body = await request.json();
-    const { title, imageUrl, price, pddPath, stationId } = body;
+    const { title, imageUrl, price, pddPath } = body;
 
-    const station = stationId
-      ? await prisma.station.findUnique({ where: { id: stationId } })
-      : await prisma.station.findFirst({ where: { status: "APPROVED" } });
+    // 根据认证用户获取站点
+    let station = null;
+    if (user!.role === "STATION_MASTER") {
+      station = await prisma.station.findUnique({ where: { userId: user!.id } });
+    } else if (user!.agentId) {
+      station = await prisma.station.findFirst({
+        where: { agentId: user!.agentId, status: "APPROVED" },
+        orderBy: { createdAt: "desc" },
+      });
+    } else {
+      station = await prisma.station.findFirst({ where: { status: "APPROVED" } });
+    }
 
     if (!station) return NextResponse.json({ error: "站点不存在" }, { status: 400 });
 
@@ -40,6 +53,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const { error } = await getAuthUser();
+  if (error) return error;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -53,6 +69,9 @@ export async function DELETE(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const { error } = await getAuthUser();
+  if (error) return error;
+
   try {
     const body = await request.json();
     const { id, title, imageUrl, price, pddPath, status, sortOrder } = body;

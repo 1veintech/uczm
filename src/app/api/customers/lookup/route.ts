@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/api-auth";
 
 export async function GET(req: NextRequest) {
+  const { error } = await getAuthUser();
+  if (error) return error;
+
   try {
     const { searchParams } = new URL(req.url);
     const phone = searchParams.get("phone");

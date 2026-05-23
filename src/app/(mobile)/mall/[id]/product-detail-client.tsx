@@ -53,7 +53,7 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24">
+    <div className="min-h-screen mini-page pb-24">
       {/* Image Carousel */}
       <div className="relative bg-white">
         <div className="relative overflow-hidden">
@@ -95,7 +95,7 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
       </div>
 
       {/* Price Section */}
-      <div className="bg-white px-4 py-3.5 mt-0.5">
+      <div className="mini-card mx-3 mt-3 px-4 py-3.5">
         <div className="flex items-end gap-2">
           <span className="text-2xl font-bold text-blue-600">
             <span className="text-sm">¥</span>{product.price.toFixed(2)}
@@ -125,7 +125,7 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
       </div>
 
       {/* Description */}
-      <div className="bg-white px-4 py-3.5 mt-2">
+      <div className="mini-card mx-3 mt-3 px-4 py-3.5">
         <h3 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-1.5">
           <span className="w-1 h-4 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full" />
           商品详情
@@ -136,7 +136,7 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
       </div>
 
       {/* Quantity Selector */}
-      <div className="bg-white px-4 py-3 mt-2 flex items-center justify-between">
+      <div className="mini-card mx-3 mt-3 flex items-center justify-between px-4 py-3">
         <span className="text-sm font-medium text-gray-700">购买数量</span>
         <div className="flex items-center gap-2">
           <button
@@ -158,7 +158,7 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
       </div>
 
       {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+      <div className="fixed bottom-0 left-0 right-0 z-50 mini-bottom-bar px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
         <div className="max-w-md mx-auto flex items-center gap-3">
           <Link
             href="/cart"
@@ -169,13 +169,13 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
           </Link>
           <button
             onClick={handleAddToCart}
-            className="flex-1 py-3 rounded-full border-2 border-blue-500 text-blue-500 font-semibold text-sm active:scale-[0.98] transition-transform"
+            className="mini-secondary flex-1 py-3 text-sm font-semibold active:scale-[0.98]"
           >
             加入购物车
           </button>
           <button
             onClick={handleBuyNow}
-            className="flex-1 py-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 active:scale-[0.98] transition-transform"
+            className="mini-primary flex-1 py-3 text-sm font-semibold"
           >
             立即购买
           </button>

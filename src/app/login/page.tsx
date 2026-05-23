@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import {
   Shield,
   Zap,
@@ -120,7 +121,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleMobilePasswordLogin = (e: React.FormEvent) => {
+  const handleMobilePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!phone || phone.length !== 11) {
@@ -132,15 +133,34 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    const userInfo = {
-      nickname: `用户${phone.slice(-4)}`,
-      phone,
-    };
-    localStorage.setItem("c_user", JSON.stringify(userInfo));
-    router.push("/");
+
+    try {
+      const res = await fetch("/api/customers/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, password: mobilePassword }),
+      });
+      const data = await res.json();
+
+      if (!data.success) {
+        setError(data.message || "登录失败");
+        setLoading(false);
+        return;
+      }
+
+      const userInfo = {
+        nickname: data.customer.nickname || `用户${phone.slice(-4)}`,
+        phone,
+      };
+      localStorage.setItem("c_user", JSON.stringify(userInfo));
+      router.push("/");
+    } catch {
+      setError("网络错误，请重试");
+      setLoading(false);
+    }
   };
 
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!email) {
@@ -152,18 +172,39 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    const validAccounts: Record<string, { password: string; path: string }> = {
-      "admin@ddcm.com": { password: "admin123", path: "/admin" },
-      "agent@ddcm.com": { password: "agent123", path: "/agent" },
-      "zhang@ddcm.com": { password: "station123", path: "/station" },
-      "li@ddcm.com": { password: "station123", path: "/station" },
-    };
-    const account = validAccounts[email];
-    if (account && account.password === password) {
-      localStorage.setItem("user", JSON.stringify({ email, path: account.path }));
-      router.push(account.path);
-    } else {
-      setError("账号或密码错误");
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("账号或密码错误");
+        setLoading(false);
+        return;
+      }
+
+      // 从 session 获取用户角色，跳转对应后台
+      const sessionRes = await fetch("/api/auth/session");
+      const session = await sessionRes.json();
+      const role = session?.user?.role;
+
+      const pathMap: Record<string, string> = {
+        SUPER_ADMIN: "/admin",
+        COUNTY_AGENT: "/agent",
+        STATION_MASTER: "/station",
+      };
+
+      if (role && pathMap[role]) {
+        router.push(pathMap[role]);
+      } else {
+        setError("未知用户角色");
+        setLoading(false);
+      }
+    } catch {
+      setError("登录失败，请重试");
       setLoading(false);
     }
   };

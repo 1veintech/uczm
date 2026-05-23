@@ -11,9 +11,7 @@ import {
   Settings,
   Menu,
   Bell,
-  ChevronDown,
   Crown,
-  BarChart3,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -112,7 +110,7 @@ function SidebarContent({ className }: { className?: string }) {
           <button
             onClick={() => {
               localStorage.clear();
-              window.location.href = "/login";
+              window.location.href = "/home";
             }}
             className="rounded-md p-1.5 text-slate-500 hover:bg-white/10 hover:text-red-400 transition-colors"
             title="退出登录"
@@ -133,15 +131,15 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="dark flex h-screen bg-[#0F172A] overflow-hidden">
+    <div className="dark flex h-screen overflow-hidden bg-[#07111F]">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 shrink-0 border-r border-white/5 bg-[#0B1120]">
+      <aside className="hidden w-64 shrink-0 border-r border-white/[0.08] bg-[#07111F] lg:flex">
         <SidebarContent />
       </aside>
 
       {/* Mobile Sidebar */}
       <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetContent side="left" className="w-64 p-0 bg-[#0B1120] border-white/5">
+        <SheetContent side="left" className="w-64 border-white/[0.08] bg-[#07111F] p-0">
           <SidebarContent />
         </SheetContent>
       </Sheet>
@@ -149,7 +147,7 @@ export default function AdminLayout({
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top Bar */}
-        <header className="flex h-14 items-center gap-4 border-b border-white/5 bg-[#0F172A]/80 backdrop-blur-sm px-4 lg:px-6">
+        <header className="flex h-14 items-center gap-4 border-b border-white/[0.08] bg-[#07111F]/[0.88] px-4 backdrop-blur-sm lg:px-6">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger>
               <Button
@@ -169,7 +167,9 @@ export default function AdminLayout({
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-4 lg:p-6">{children}</main>
+        <main className="flex-1 overflow-auto bg-[linear-gradient(145deg,rgba(37,99,235,0.16),transparent_34%),linear-gradient(180deg,#0B1728,#07111F)] p-4 lg:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

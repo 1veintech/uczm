@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Phone, Clock, CheckCircle, AlertTriangle, MessageSquare } from "lucide-react";
+import { ArrowLeft, Clock, CheckCircle, AlertTriangle, MessageSquare } from "lucide-react";
 import Link from "next/link";
 
 const PROBLEM_TYPE_LABELS: Record<string, string> = {
@@ -34,7 +34,7 @@ export default async function ComplaintDetailPage({
   const complaint = await prisma.complaint.findUnique({
     where: { id },
     include: {
-      station: { select: { name: true, phone: true } },
+      station: { select: { name: true } },
       customer: { select: { nickname: true } },
     },
   });
@@ -46,9 +46,9 @@ export default async function ComplaintDetailPage({
   const StatusIcon = statusConfig.icon;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen mini-page">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100">
+      <div className="sticky top-0 z-40 mini-topbar">
         <div className="flex items-center h-12 px-4">
           <Link href="/" className="p-1 -ml-1 active:scale-95 transition-transform">
             <ArrowLeft size={20} className="text-gray-700" />
@@ -61,7 +61,7 @@ export default async function ComplaintDetailPage({
 
       <div className="px-4 py-4 space-y-3">
         {/* Status Card */}
-        <div className={`rounded-2xl p-5 ${statusConfig.bgColor} border border-gray-50`}>
+        <div className={`rounded-lg p-5 ${statusConfig.bgColor} `}>
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm`}>
               <StatusIcon size={24} className={statusConfig.color} />
@@ -80,7 +80,7 @@ export default async function ComplaintDetailPage({
         </div>
 
         {/* Problem Info */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-50">
+        <div className="mini-card p-4 ">
           <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-1.5">
             <span className="w-1 h-4 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full" />
             问题信息
@@ -113,14 +113,14 @@ export default async function ComplaintDetailPage({
 
         {/* Images */}
         {images.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-50">
+          <div className="mini-card p-4 ">
             <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-1.5">
               <span className="w-1 h-4 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full" />
               图片凭证
             </h3>
             <div className="flex gap-2">
               {images.map((img, idx) => (
-                <div key={idx} className="w-20 h-20 rounded-xl overflow-hidden">
+                <div key={idx} className="w-20 h-20 rounded-lg overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={img} alt={`凭证${idx + 1}`} className="w-full h-full object-cover" />
                 </div>
@@ -131,7 +131,7 @@ export default async function ComplaintDetailPage({
 
         {/* Resolution Result - Show when resolved */}
         {(complaint.status === "RESOLVED" || complaint.status === "ESCALATED") && (
-          <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-50">
+          <div className="mini-card p-4 ">
             <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-1.5">
               <span className="w-1 h-4 bg-gradient-to-b from-green-500 to-green-600 rounded-full" />
               处理结果
@@ -148,7 +148,7 @@ export default async function ComplaintDetailPage({
               {complaint.resolveRemark && (
                 <div className="flex items-start gap-3">
                   <span className="text-xs text-gray-400 w-16 shrink-0 pt-0.5">处理备注</span>
-                  <p className="text-sm text-gray-700 leading-relaxed bg-green-50 rounded-xl p-3">
+                  <p className="text-sm text-gray-700 leading-relaxed bg-green-50 rounded-lg p-3">
                     {complaint.resolveRemark}
                   </p>
                 </div>
@@ -162,7 +162,7 @@ export default async function ComplaintDetailPage({
                 </div>
               )}
               {!complaint.resolveType && !complaint.resolveRemark && (
-                <div className="bg-green-50 rounded-xl p-3 text-center">
+                <div className="bg-green-50 rounded-lg p-3 text-center">
                   <CheckCircle size={20} className="text-green-500 mx-auto mb-1" />
                   <p className="text-sm text-green-600 font-medium">该问题已被处理</p>
                   <p className="text-xs text-green-500 mt-0.5">站长已为您解决了此问题</p>
@@ -173,7 +173,7 @@ export default async function ComplaintDetailPage({
         )}
 
         {/* Station Info */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-50">
+        <div className="mini-card p-4 ">
           <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-1.5">
             <span className="w-1 h-4 bg-gradient-to-b from-blue-500 to-blue-600 rounded-full" />
             处理站点
@@ -181,24 +181,18 @@ export default async function ComplaintDetailPage({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-700">{complaint.station?.name || "未知"}</p>
-              <p className="text-xs text-gray-400 mt-0.5">负责处理您的售后问题</p>
+              <p className="text-xs text-gray-400 mt-0.5">负责处理您的售后问题，进度将在站内更新</p>
             </div>
-            {complaint.station?.phone && (
-              <a
-                href={`tel:${complaint.station.phone}`}
-                className="flex items-center gap-1.5 bg-blue-50 text-blue-500 px-4 py-2 rounded-full text-sm font-medium active:scale-95 transition-transform"
-              >
-                <Phone size={14} />
-                联系
-              </a>
-            )}
+            <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-600">
+              站内处理
+            </span>
           </div>
         </div>
 
         {/* Contact for follow-up */}
-        <div className="bg-blue-50 rounded-2xl p-4 text-center">
+        <div className="bg-blue-50 rounded-lg p-4 text-center">
           <MessageSquare size={20} className="text-blue-400 mx-auto mb-2" />
-          <p className="text-xs text-blue-600">如需补充信息或有疑问，请直接联系站长</p>
+          <p className="text-xs text-blue-600">如需补充信息或有疑问，请继续通过售后记录查看处理进度</p>
         </div>
       </div>
     </div>

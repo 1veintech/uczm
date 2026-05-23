@@ -147,13 +147,13 @@ export default function CheckoutPage() {
         <div className="flex gap-3">
           <Link
             href="/orders"
-            className="px-5 py-2 rounded-full border border-gray-200 text-sm text-gray-600"
+            className="mini-secondary px-5 py-2 text-sm"
           >
             查看订单
           </Link>
           <Link
             href="/"
-            className="px-5 py-2 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-medium"
+            className="mini-primary px-5 py-2 text-sm font-medium"
           >
             返回首页
           </Link>
@@ -168,7 +168,7 @@ export default function CheckoutPage() {
         <p className="text-sm text-gray-400 mb-4">购物车为空</p>
         <Link
           href="/mall"
-          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white text-sm font-semibold"
+          className="mini-primary px-6 py-2.5 text-sm font-semibold"
         >
           去购物
         </Link>
@@ -177,9 +177,9 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-orange-50/30">
+    <div className="min-h-screen mini-page">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100">
+      <div className="sticky top-0 z-40 mini-topbar">
         <div className="flex items-center h-12 px-4">
           <button onClick={() => router.back()} className="p-1 -ml-1">
             <ArrowLeft size={20} className="text-gray-700" />
@@ -192,10 +192,10 @@ export default function CheckoutPage() {
 
       <div className="px-4 py-4 space-y-3 pb-32">
         {/* Receiver Info */}
-        <div className="bg-white rounded-2xl shadow-sm p-4">
+        <div className="mini-card p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <MapPin size={16} className="text-[#FF6B35]" />
+              <MapPin size={16} className="text-blue-600" />
               <h3 className="text-sm font-semibold text-gray-800">收货信息</h3>
             </div>
             {savedAddresses.length > 0 && (
@@ -215,7 +215,7 @@ export default function CheckoutPage() {
                 <button
                   key={addr.id}
                   onClick={() => selectAddress(addr)}
-                  className="w-full text-left p-2.5 rounded-xl bg-slate-50 border border-gray-100 hover:border-blue-200 transition-colors"
+                  className="w-full text-left p-2.5 rounded-lg mini-input hover:border-blue-200 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium text-gray-700">{addr.name}</span>
@@ -240,7 +240,7 @@ export default function CheckoutPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="收货人姓名"
-                className="flex-1 rounded-xl bg-gray-50 border-0 px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30"
+                className="mini-input flex-1 px-3 py-2.5 text-sm placeholder:text-gray-400"
               />
               <input
                 type="tel"
@@ -248,7 +248,7 @@ export default function CheckoutPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="手机号"
                 maxLength={11}
-                className="flex-1 rounded-xl bg-gray-50 border-0 px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30"
+                className="mini-input flex-1 px-3 py-2.5 text-sm placeholder:text-gray-400"
               />
             </div>
             <textarea
@@ -256,13 +256,13 @@ export default function CheckoutPage() {
               onChange={(e) => setAddress(e.target.value)}
               placeholder="详细收货地址"
               rows={2}
-              className="w-full rounded-xl bg-gray-50 border-0 px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/30"
+              className="mini-input w-full px-3 py-2.5 text-sm placeholder:text-gray-400 resize-none"
             />
           </div>
         </div>
 
         {/* Order Items */}
-        <div className="bg-white rounded-2xl shadow-sm p-4">
+        <div className="mini-card p-4">
           <h3 className="text-sm font-semibold text-gray-800 mb-3">
             商品清单 ({items.length}件)
           </h3>
@@ -280,7 +280,7 @@ export default function CheckoutPage() {
                     {item.name}
                   </p>
                   <div className="flex items-end justify-between">
-                    <span className="text-sm font-bold text-[#FF6B35]">
+                    <span className="text-sm font-bold text-blue-600">
                       ¥{item.price.toFixed(2)}
                     </span>
                     <span className="text-xs text-gray-400">
@@ -294,10 +294,10 @@ export default function CheckoutPage() {
         </div>
 
         {/* Total */}
-        <div className="bg-white rounded-2xl shadow-sm p-4">
+        <div className="mini-card p-4">
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">商品合计</span>
-            <span className="text-base font-bold text-[#FF6B35]">
+            <span className="text-base font-bold text-blue-600">
               ¥{total.toFixed(2)}
             </span>
           </div>
@@ -309,18 +309,18 @@ export default function CheckoutPage() {
       </div>
 
       {/* Bottom Pay Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-100 px-4 py-3 pb-[env(safe-area-inset-bottom)]">
+      <div className="fixed bottom-0 left-0 right-0 z-50 mini-bottom-bar px-4 py-3 pb-[env(safe-area-inset-bottom)]">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500">需支付</p>
-            <p className="text-xl font-bold text-[#FF6B35]">
+            <p className="text-xl font-bold text-blue-600">
               ¥{total.toFixed(2)}
             </p>
           </div>
           <button
             onClick={handlePay}
             disabled={paying}
-            className="px-8 py-3 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold text-sm shadow-lg shadow-orange-500/25 disabled:opacity-60 active:scale-[0.98] transition-all flex items-center gap-2"
+            className="mini-primary flex items-center gap-2 px-8 py-3 text-sm font-semibold disabled:opacity-60"
           >
             {paying ? (
               <>

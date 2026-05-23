@@ -11,17 +11,14 @@ import {
   ShoppingBag,
   DollarSign,
   QrCode,
-  Settings,
   Menu,
   X,
   Bell,
   ChevronRight,
   LogOut,
-  ChevronDown,
   ShoppingCart,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -84,7 +81,7 @@ export default function StationLayout({
   const pageTitle = getPageTitle(pathname);
 
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-900">
+    <div className="flex h-screen bg-[#F6F8FC] text-slate-900">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -97,7 +94,7 @@ export default function StationLayout({
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex w-64 flex-col transition-transform duration-300 lg:static lg:translate-x-0",
-          "bg-gradient-to-b from-[#0B1120] to-[#1E293B]",
+          "bg-gradient-to-b from-[#07111F] via-[#0B1728] to-[#10233C]",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -183,7 +180,7 @@ export default function StationLayout({
             <button
               onClick={() => {
                 localStorage.clear();
-                window.location.href = "/login";
+                window.location.href = "/home";
               }}
               className="rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-red-400 transition-colors"
               title="退出登录"
@@ -197,7 +194,7 @@ export default function StationLayout({
       {/* Main content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top header */}
-        <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 lg:px-6 shadow-sm">
+        <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white/86 px-4 shadow-sm backdrop-blur lg:px-6">
           <div className="flex items-center gap-4">
             <button
               className="lg:hidden rounded-lg p-2 text-gray-500 hover:bg-gray-100"
@@ -242,7 +239,7 @@ export default function StationLayout({
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 lg:p-6">
+        <main className="flex-1 overflow-y-auto bg-[#F6F8FC] p-4 lg:p-6">
           {children}
         </main>
       </div>

@@ -30,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files - NEVER commit these
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -41,3 +42,22 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+.gstack/
+
+# Database files - NEVER commit
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+Thumbs.db
+
+# Sensitive docs containing credentials
+.github/GITHUB_SECRETS.md
+.github/RAILWAY_CONFIG.md
+public/uploads/

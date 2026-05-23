@@ -1,14 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireStationMaster } from "@/lib/api-auth";
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { name, images, description, price, originalPrice, stock, stationId } = body;
+    const { user, error } = await requireStationMaster();
+    if (error) return error;
 
-    const station = stationId
-      ? await prisma.station.findUnique({ where: { id: stationId } })
-      : await prisma.station.findFirst({ where: { status: "APPROVED" } });
+    const body = await request.json();
+    const { name, images, description, price, originalPrice, stock } = body;
+
+    const station = await prisma.station.findUnique({
+      where: { userId: user!.id },
+    });
 
     if (!station) return NextResponse.json({ error: "站点不存在" }, { status: 400 });
 

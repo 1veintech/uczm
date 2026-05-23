@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireStationMaster } from "@/lib/api-auth";
 
 export async function POST(request: Request) {
+  const { user, error } = await requireStationMaster();
+  if (error) return error;
+
   try {
     const body = await request.json();
     const { title, requirements, salary, workLocation, contactPhone } = body;
@@ -10,9 +14,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "请填写必填字段" }, { status: 400 });
     }
 
-    // Find the station by the default user
-    const station = await prisma.station.findFirst({
-      where: { user: { email: "zhang@ddcm.com" } },
+    // 从认证用户获取站点
+    const station = await prisma.station.findUnique({
+      where: { userId: user!.id },
     });
 
     if (!station) {

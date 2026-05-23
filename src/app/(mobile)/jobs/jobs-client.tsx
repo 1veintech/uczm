@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
-  ArrowLeft,
-  MapPin,
-  Briefcase,
-  X,
-  Loader2,
+  BadgeCheck,
+  BriefcaseBusiness,
   CheckCircle2,
-  LogIn,
+  Clock3,
+  Loader2,
+  MapPin,
+  Phone,
+  Send,
+  ShieldCheck,
+  X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { toast } from "sonner";
 
 interface JobItem {
@@ -25,7 +26,6 @@ interface JobItem {
 }
 
 export function JobsClient({ jobs }: { jobs: JobItem[] }) {
-  const router = useRouter();
   const [user, setUser] = useState<{ nickname: string; phone: string } | null>(null);
   const [showSheet, setShowSheet] = useState(false);
   const [selectedJob, setSelectedJob] = useState<JobItem | null>(null);
@@ -37,21 +37,19 @@ export function JobsClient({ jobs }: { jobs: JobItem[] }) {
   useEffect(() => {
     const saved = localStorage.getItem("c_user");
     if (saved) {
-      try { setUser(JSON.parse(saved)); } catch {}
+      try {
+        const parsed = JSON.parse(saved);
+        queueMicrotask(() => setUser(parsed));
+      } catch {}
     }
   }, []);
 
   const handleApply = (job: JobItem) => {
-    if (!user) {
-      toast.error("请先登录后再报名");
-      router.push("/login");
-      return;
-    }
     setSelectedJob(job);
     setShowSheet(true);
     setApplied(false);
-    setApplyName("");
-    setApplyPhone("");
+    setApplyName(user?.nickname || "");
+    setApplyPhone(user?.phone || "");
   };
 
   const handleSubmitApply = async () => {
@@ -94,163 +92,166 @@ export function JobsClient({ jobs }: { jobs: JobItem[] }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100">
-        <div className="flex items-center h-12 px-4">
-          <button onClick={() => router.back()} className="p-1 -ml-1 active:scale-95 transition-transform">
-            <ArrowLeft size={20} className="text-gray-700" />
-          </button>
-          <h1 className="flex-1 text-center text-base font-semibold text-gray-800 pr-7">
-            招聘信息
-          </h1>
-        </div>
-      </div>
-
-      {/* Login required prompt */}
-      {!user && (
-        <div className="mx-4 mt-3 bg-blue-50 rounded-2xl p-4 flex items-center gap-3 border border-blue-100">
-          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-            <LogIn size={18} className="text-blue-500" />
+    <div className="min-h-screen mini-premium-bg pb-6">
+      <section className="px-4 pt-4">
+        <div className="mini-glass-panel-dark overflow-hidden p-4 text-white">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs tracking-[0.2em] text-white/65">LOCAL JOBS</p>
+              <h1 className="mt-2 text-2xl font-semibold">站长招聘</h1>
+              <p className="mt-2 text-sm leading-5 text-white/72">
+                分拣、配送、仓内运营岗位集中发布，报名后站长直接联系。
+              </p>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/14 backdrop-blur-md">
+              <BriefcaseBusiness size={22} />
+            </div>
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-700">登录后可报名</p>
-            <p className="text-xs text-gray-400">登录享受更多服务</p>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="rounded-lg bg-white/12 p-3">
+              <p className="text-[11px] text-white/60">在招岗位</p>
+              <p className="mt-1 text-lg font-semibold">{jobs.length}</p>
+            </div>
+            <div className="rounded-lg bg-white/12 p-3">
+              <p className="text-[11px] text-white/60">响应</p>
+              <p className="mt-1 text-lg font-semibold">当天</p>
+            </div>
+            <div className="rounded-lg bg-white/12 p-3">
+              <p className="text-[11px] text-white/60">服务站</p>
+              <p className="mt-1 text-lg font-semibold">直招</p>
+            </div>
           </div>
-          <Link
-            href="/login"
-            className="px-4 py-1.5 rounded-full bg-blue-500 text-white text-xs font-medium active:scale-95"
-          >
-            去登录
-          </Link>
         </div>
-      )}
+      </section>
 
-      {/* Job List */}
-      <div className="px-4 py-3 space-y-2.5">
-        {jobs.map((job) => (
-          <div
-            key={job.id}
-            className="bg-white rounded-2xl shadow-sm p-4 border border-gray-50"
-          >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex-1">
-                <h3 className="text-base font-semibold text-gray-800">
-                  {job.title}
-                </h3>
-                <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                  <MapPin size={11} className="text-blue-400" />
-                  {job.workLocation}
-                </p>
+      <section className="px-4 pt-4">
+        <div className="mini-glass-panel flex items-center gap-3 p-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+            <ShieldCheck size={18} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-slate-900">报名信息直达站长后台</p>
+            <p className="mt-0.5 text-[11px] text-slate-500">按说明书流程填写姓名和手机号即可投递</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 py-3">
+        <div className="space-y-3">
+          {jobs.map((job) => (
+            <article key={job.id} className="mini-glass-panel p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium text-blue-600">
+                    <BadgeCheck size={12} />
+                    服务站直招
+                  </div>
+                  <h2 className="text-base font-semibold text-slate-950">{job.title}</h2>
+                  <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                    <MapPin size={12} className="text-blue-400" />
+                    {job.workLocationDetail || job.workLocation}
+                  </p>
+                </div>
+                <span className="flex-shrink-0 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-500">
+                  {job.salary}
+                </span>
               </div>
-              <span className="flex-shrink-0 ml-2 px-3 py-1 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold shadow-sm shadow-blue-500/20">
-                {job.salary}
-              </span>
+
+              {job.requirements && (
+                <p className="mt-3 line-clamp-2 rounded-lg bg-white/80 p-3 text-xs leading-5 text-slate-500">
+                  {job.requirements}
+                </p>
+              )}
+
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2 text-[11px] text-slate-400">
+                  <Clock3 size={12} />
+                  <span className="truncate">工作地点：{job.workLocation}</span>
+                </div>
+                <button
+                  onClick={() => handleApply(job)}
+                  className="flex flex-shrink-0 items-center gap-1.5 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-blue-500/20 transition active:scale-95"
+                >
+                  <Send size={13} />
+                  报名
+                </button>
+              </div>
+            </article>
+          ))}
+
+          {jobs.length === 0 && (
+            <div className="mini-glass-panel flex flex-col items-center justify-center py-16">
+              <BriefcaseBusiness size={42} className="mb-3 text-slate-300" />
+              <p className="text-sm text-slate-400">暂无招聘信息</p>
             </div>
+          )}
+        </div>
+      </section>
 
-            {job.requirements && (
-              <p className="text-xs text-gray-500 leading-relaxed mb-3 line-clamp-2">
-                <Briefcase size={11} className="inline mr-1 text-blue-400" />
-                {job.requirements}
-              </p>
-            )}
-
-            <div className="flex items-center justify-between">
-              <p className="text-[11px] text-gray-400">
-                工作地点：{job.workLocationDetail || job.workLocation}
-              </p>
-              <button
-                onClick={() => handleApply(job)}
-                className="px-4 py-1.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-semibold shadow-sm shadow-blue-500/20 active:scale-95 transition-transform"
-              >
-                我要报名
-              </button>
-            </div>
-          </div>
-        ))}
-
-        {jobs.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Briefcase size={40} className="text-gray-300 mb-3" />
-            <p className="text-sm text-gray-400">暂无招聘信息</p>
-          </div>
-        )}
-      </div>
-
-      {/* Apply Sheet */}
       {showSheet && (
         <div className="fixed inset-0 z-50">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setShowSheet(false)}
-          />
-          {/* Sheet */}
-          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl px-5 pt-5 pb-8 max-w-md mx-auto animate-slide-up">
-            {/* Handle */}
-            <div className="flex justify-center mb-4">
-              <div className="w-10 h-1 rounded-full bg-gray-300" />
+          <div className="absolute inset-0 bg-slate-950/45" onClick={() => setShowSheet(false)} />
+          <div className="absolute bottom-0 left-0 right-0 mx-auto max-w-md rounded-t-lg border border-white/70 bg-white px-5 pb-8 pt-5 shadow-2xl animate-slide-up">
+            <div className="mb-4 flex justify-center">
+              <div className="h-1 w-10 rounded-full bg-slate-200" />
             </div>
-
             <button
               onClick={() => setShowSheet(false)}
-              className="absolute top-4 right-4 p-1 active:scale-95 transition-transform"
+              className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-400"
+              aria-label="关闭"
             >
-              <X size={20} className="text-gray-400" />
+              <X size={17} />
             </button>
 
             {applied ? (
               <div className="flex flex-col items-center py-6">
-                <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mb-3">
-                  <CheckCircle2 size={32} className="text-green-500" />
+                <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-lg bg-emerald-50 text-emerald-500">
+                  <CheckCircle2 size={32} />
                 </div>
-                <h3 className="text-base font-bold text-gray-800 mb-1">
-                  报名成功
-                </h3>
-                <p className="text-sm text-gray-500 text-center">
-                  {selectedJob?.title} - {selectedJob?.workLocation}
-                </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  工作人员会尽快与您联系
+                <h3 className="text-base font-bold text-slate-900">报名成功</h3>
+                <p className="mt-2 text-center text-sm text-slate-500">
+                  {selectedJob?.title} · {selectedJob?.workLocation}
                 </p>
                 <button
                   onClick={() => setShowSheet(false)}
-                  className="mt-4 px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-semibold shadow-sm shadow-blue-500/20 active:scale-95 transition-transform"
+                  className="mt-5 rounded-lg bg-slate-950 px-8 py-2.5 text-sm font-semibold text-white"
                 >
                   知道了
                 </button>
               </div>
             ) : (
               <>
-                <h3 className="text-base font-bold text-gray-800 mb-1">
-                  报名 - {selectedJob?.title}
-                </h3>
-                <p className="text-xs text-gray-400 mb-5">
-                  {selectedJob?.salary} | {selectedJob?.workLocation}
+                <p className="text-xs font-medium text-blue-600">报名岗位</p>
+                <h3 className="mt-1 text-lg font-bold text-slate-900">{selectedJob?.title}</h3>
+                <p className="mt-1 text-xs text-slate-500">
+                  {selectedJob?.salary} · {selectedJob?.workLocation}
                 </p>
 
-                <div className="space-y-3">
+                <div className="mt-5 space-y-3">
                   <input
                     type="text"
                     value={applyName}
                     onChange={(e) => setApplyName(e.target.value)}
                     placeholder="您的姓名"
-                    className="w-full rounded-xl bg-slate-50 border border-gray-100 px-3 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-all"
+                    className="mini-input w-full px-3 py-3 text-sm placeholder:text-slate-400"
                   />
-                  <input
-                    type="tel"
-                    value={applyPhone}
-                    onChange={(e) => setApplyPhone(e.target.value)}
-                    placeholder="您的手机号"
-                    maxLength={11}
-                    className="w-full rounded-xl bg-slate-50 border border-gray-100 px-3 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-all"
-                  />
+                  <div className="relative">
+                    <Phone size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="tel"
+                      value={applyPhone}
+                      onChange={(e) => setApplyPhone(e.target.value.replace(/\D/g, ""))}
+                      placeholder="您的手机号"
+                      maxLength={11}
+                      className="mini-input w-full px-3 py-3 pl-9 text-sm placeholder:text-slate-400"
+                    />
+                  </div>
                 </div>
 
                 <button
                   onClick={handleSubmitApply}
                   disabled={applying}
-                  className="w-full mt-5 py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold text-base shadow-lg shadow-blue-500/25 disabled:opacity-60 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-500 py-3.5 text-base font-semibold text-white shadow-lg shadow-blue-500/25 transition active:scale-[0.98] disabled:opacity-60"
                 >
                   {applying ? (
                     <>
@@ -267,7 +268,6 @@ export function JobsClient({ jobs }: { jobs: JobItem[] }) {
         </div>
       )}
 
-      {/* Slide-up animation */}
       <style jsx global>{`
         @keyframes slide-up {
           from {

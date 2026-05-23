@@ -1,3 +1,5 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { COMPLAINT_STATUS_LABELS, PROBLEM_TYPE_LABELS } from "@/lib/constants";
 import { format } from "date-fns";
@@ -5,9 +7,19 @@ import { zhCN } from "date-fns/locale";
 import DashboardClient from "./dashboard-client";
 
 export default async function StationDashboard() {
-  // Find station by the default user email
-  const station = await prisma.station.findFirst({
-    where: { user: { email: "zhang@ddcm.com" } },
+  // 从登录 session 获取当前用户
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-zinc-400">请先登录</p>
+      </div>
+    );
+  }
+
+  const currentUser = session.user as any;
+  const station = await prisma.station.findUnique({
+    where: { userId: currentUser.id },
     include: { user: true, agent: { select: { name: true, region: true } } },
   });
 

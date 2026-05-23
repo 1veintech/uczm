@@ -5,8 +5,6 @@ import {
   DollarSign,
   AlertTriangle,
   TrendingUp,
-  Clock,
-  ShoppingCart,
   Flame,
 } from "lucide-react";
 import {
@@ -54,18 +52,17 @@ export default async function AdminDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute right-16 bottom-0 w-32 h-32 bg-white/5 rounded-full" />
+      <div className="premium-dark-panel relative overflow-hidden rounded-lg p-6 text-white">
+        <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(37,99,235,0.28),transparent_42%),linear-gradient(35deg,transparent_55%,rgba(56,189,248,0.22))]" />
         <div className="relative">
           <h1 className="text-2xl font-bold">欢迎回来，管理员</h1>
-          <p className="text-blue-100 mt-1 text-sm">今天是{new Date().toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" })}，祝您工作顺利！</p>
+          <p className="mt-1 text-sm text-slate-300">今天是{new Date().toLocaleDateString("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" })}，总部经营数据已同步。</p>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-6">
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -78,7 +75,7 @@ export default async function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -91,7 +88,7 @@ export default async function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -104,7 +101,7 @@ export default async function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -117,7 +114,7 @@ export default async function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -130,7 +127,7 @@ export default async function AdminDashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -146,7 +143,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Region Overview */}
-      <Card className="bg-white border-0 shadow-sm">
+      <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-slate-800 text-base">区域概览</CardTitle>
           <CardDescription>各区县代理及管辖站点</CardDescription>
@@ -174,7 +171,7 @@ export default async function AdminDashboard() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Revenue Chart - Simple bar chart */}
-        <Card className="bg-white border-0 shadow-sm lg:col-span-2">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm lg:col-span-2">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div>
@@ -207,7 +204,7 @@ export default async function AdminDashboard() {
         </Card>
 
         {/* Pending Withdrawals */}
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-slate-800 text-base flex items-center gap-2">

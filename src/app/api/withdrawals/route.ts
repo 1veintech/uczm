@@ -1,30 +1,30 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/api-auth";
 
 export async function POST(request: Request) {
   try {
+    const { user, error } = await getAuthUser();
+    if (error) return error;
+
     const body = await request.json();
-    const { stationId, amount, bankInfo } = body;
+    const { amount, bankInfo } = body;
 
     if (!amount) {
       return NextResponse.json({ error: "请填写提现金额" }, { status: 400 });
     }
 
-    // If stationId not provided, find by default user
-    let sid = stationId;
-    if (!sid) {
-      const station = await prisma.station.findFirst({
-        where: { user: { email: "zhang@ddcm.com" } },
-      });
-      if (!station) {
-        return NextResponse.json({ error: "站点不存在" }, { status: 400 });
-      }
-      sid = station.id;
+    // 从认证用户获取站长绑定的站点
+    const station = await prisma.station.findUnique({
+      where: { userId: user!.id },
+    });
+    if (!station) {
+      return NextResponse.json({ error: "站点不存在" }, { status: 400 });
     }
 
     const withdrawal = await prisma.withdrawalRequest.create({
       data: {
-        stationId: sid,
+        stationId: station.id,
         amount: parseFloat(amount),
         bankInfo: bankInfo || "",
         status: "PENDING",

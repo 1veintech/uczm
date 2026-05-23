@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/api-auth";
 
 export async function POST(req: NextRequest) {
+  const { error } = await getAuthUser();
+  if (error) return error;
+
   try {
     const { phone, stationId } = await req.json();
 
@@ -26,16 +30,11 @@ export async function POST(req: NextRequest) {
     });
 
     if (customer) {
-      // Update existing customer's station binding
       customer = await prisma.customer.update({
         where: { id: customer.id },
-        data: {
-          stationId,
-          openid, // update openid if changed
-        },
+        data: { stationId, openid },
       });
     } else {
-      // Create new customer bound to this station
       customer = await prisma.customer.create({
         data: {
           openid,
@@ -46,7 +45,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Save user info to localStorage on client side (return data)
     return NextResponse.json({
       success: true,
       customer: {

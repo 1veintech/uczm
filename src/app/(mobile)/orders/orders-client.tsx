@@ -40,9 +40,9 @@ export function OrdersClient({ orders }: { orders: OrderData[] }) {
       : orders.filter((o) => o.status === activeTab);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen mini-page">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100">
+      <div className="sticky top-0 z-40 mini-topbar">
         <div className="flex items-center h-12 px-4">
           <button onClick={() => router.back()} className="p-1 -ml-1 active:scale-95 transition-transform">
             <ArrowLeft size={20} className="text-gray-700" />
@@ -66,7 +66,7 @@ export function OrdersClient({ orders }: { orders: OrderData[] }) {
             >
               {tab.label}
               {activeTab === tab.key && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-blue-500" />
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-5 h-0.5 mini-primary" />
               )}
             </button>
           ))}
@@ -83,7 +83,7 @@ export function OrdersClient({ orders }: { orders: OrderData[] }) {
           return (
             <div
               key={order.id}
-              className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-50"
+              className="mini-card overflow-hidden "
             >
               {/* Order Header */}
               <div className="flex items-center justify-between px-4 pt-3 pb-2">
@@ -105,7 +105,7 @@ export function OrdersClient({ orders }: { orders: OrderData[] }) {
                     <img
                       src={item.productImage || `https://picsum.photos/seed/${item.id}/100/100`}
                       alt={item.productName}
-                      className="w-14 h-14 rounded-xl object-cover"
+                      className="w-14 h-14 rounded-lg object-cover"
                     />
                     <div className="flex-1 min-w-0 flex items-center justify-between">
                       <p className="text-xs text-gray-800 font-medium line-clamp-1 flex-1 mr-3">
@@ -125,7 +125,7 @@ export function OrdersClient({ orders }: { orders: OrderData[] }) {
               </div>
 
               {/* Order Footer */}
-              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-50 bg-slate-50/50">
+              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-50 bg-slate-50/70">
                 <span className="text-[11px] text-gray-400">
                   {order.createdAt}
                 </span>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Clock, CheckCircle, AlertTriangle, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
@@ -31,9 +32,21 @@ interface Complaint {
 }
 
 export default function ComplaintHistoryPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <ComplaintHistoryContent />
+    </Suspense>
+  );
+}
+
+function ComplaintHistoryContent() {
+  const searchParams = useSearchParams();
+  const initialStatus = searchParams.get("status");
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string | null>(
+    initialStatus === "PENDING" || initialStatus === "RESOLVED" ? initialStatus : null,
+  );
   const [user, setUser] = useState<{ phone: string } | null>(null);
 
   useEffect(() => {
@@ -41,44 +54,44 @@ export default function ComplaintHistoryPage() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setUser(parsed);
+        queueMicrotask(() => setUser(parsed));
       } catch {}
     }
   }, []);
 
   useEffect(() => {
     if (!user) {
-      setLoading(false);
+      queueMicrotask(() => setLoading(false));
       return;
     }
+
+    const fetchComplaints = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({ phone: user.phone });
+        if (statusFilter === "PENDING") params.set("status", "PENDING");
+        else if (statusFilter === "RESOLVED") params.set("status", "RESOLVED");
+        const res = await fetch(`/api/complaints?${params}`);
+        const data = await res.json();
+        setComplaints(data.complaints || []);
+      } catch {
+        setComplaints([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchComplaints();
   }, [user, statusFilter]);
-
-  const fetchComplaints = async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({ phone: user.phone });
-      if (statusFilter === "PENDING") params.set("status", "PENDING");
-      else if (statusFilter === "RESOLVED") params.set("status", "RESOLVED");
-      const res = await fetch(`/api/complaints?${params}`);
-      const data = await res.json();
-      setComplaints(data.complaints || []);
-    } catch {
-      setComplaints([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const pendingCount = complaints.filter(c => c.status === "PENDING").length;
   const resolvedCount = complaints.filter(c => c.status === "RESOLVED" || c.status === "ESCALATED").length;
   const totalCount = complaints.length;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen mini-page">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100">
+      <div className="sticky top-0 z-40 mini-topbar">
         <div className="flex items-center h-12 px-4">
           <Link href="/profile" className="p-1 -ml-1 active:scale-95 transition-transform">
             <ArrowLeft size={20} className="text-gray-700" />
@@ -92,7 +105,7 @@ export default function ComplaintHistoryPage() {
       {!user ? (
         <div className="p-8 text-center">
           <p className="text-sm text-gray-500">请先登录查看售后记录</p>
-          <Link href="/login" className="inline-block mt-4 px-5 py-2 rounded-full bg-blue-500 text-white text-sm">
+          <Link href="/home" className="inline-block mt-4 px-5 py-2 mini-primary text-white text-sm">
             去登录
           </Link>
         </div>
@@ -103,7 +116,7 @@ export default function ComplaintHistoryPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setStatusFilter(statusFilter === "PENDING" ? null : "PENDING")}
-                className={`flex-1 rounded-2xl p-3 text-center active:scale-95 transition-all border ${
+                className={`flex-1 rounded-lg p-3 text-center active:scale-95 transition-all border ${
                   statusFilter === "PENDING"
                     ? "bg-orange-100 border-orange-300 shadow-sm"
                     : "bg-orange-50 border-orange-100"
@@ -114,7 +127,7 @@ export default function ComplaintHistoryPage() {
               </button>
               <button
                 onClick={() => setStatusFilter(statusFilter === "RESOLVED" ? null : "RESOLVED")}
-                className={`flex-1 rounded-2xl p-3 text-center active:scale-95 transition-all border ${
+                className={`flex-1 rounded-lg p-3 text-center active:scale-95 transition-all border ${
                   statusFilter === "RESOLVED"
                     ? "bg-green-100 border-green-300 shadow-sm"
                     : "bg-green-50 border-green-100"
@@ -125,7 +138,7 @@ export default function ComplaintHistoryPage() {
               </button>
               <button
                 onClick={() => setStatusFilter(null)}
-                className={`flex-1 rounded-2xl p-3 text-center active:scale-95 transition-all border ${
+                className={`flex-1 rounded-lg p-3 text-center active:scale-95 transition-all border ${
                   !statusFilter
                     ? "bg-blue-100 border-blue-300 shadow-sm"
                     : "bg-blue-50 border-blue-100"
@@ -148,7 +161,7 @@ export default function ComplaintHistoryPage() {
                   <Link
                     key={complaint.id}
                     href={`/complaint/${complaint.id}`}
-                    className="block bg-white rounded-2xl shadow-sm border border-gray-50 active:scale-[0.98] transition-transform overflow-hidden"
+                    className="block mini-card active:scale-[0.98] transition-transform overflow-hidden"
                   >
                     <div className="p-4">
                       <div className="flex items-start gap-3">
@@ -197,7 +210,7 @@ export default function ComplaintHistoryPage() {
                 );
               })
             ) : (
-              <div className="bg-white rounded-2xl shadow-sm p-8 text-center border border-gray-50">
+              <div className="mini-card p-8 text-center ">
                 <div className="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
                   <CheckCircle size={32} className="text-green-400" />
                 </div>
@@ -205,7 +218,7 @@ export default function ComplaintHistoryPage() {
                 <p className="text-xs text-gray-400 mt-1">一切正常，没有售后问题</p>
                 <Link
                   href="/complaint"
-                  className="inline-block mt-4 px-5 py-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium shadow-sm shadow-blue-500/20 active:scale-95 transition-transform"
+                  className="inline-block mt-4 px-5 py-2 mini-primary text-white text-sm font-medium shadow-sm shadow-blue-500/20 active:scale-95 transition-transform"
                 >
                   提交反馈
                 </Link>

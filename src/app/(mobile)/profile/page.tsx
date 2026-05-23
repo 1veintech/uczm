@@ -1,357 +1,263 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
-  Package,
-  MessageSquareText,
-  MapPin,
-  Phone,
-  ChevronRight,
-  Settings,
-  CreditCard,
-  Truck,
-  CheckCircle,
-  LogOut,
-  Shield,
+  BadgeCheck,
   Bell,
-  Palette,
-  FileText,
+  CheckCircle,
+  ChevronRight,
+  CreditCard,
   Info,
-  X,
-  LogIn,
+  LockKeyhole,
+  LogOut,
+  MapPin,
+  MessageSquareText,
+  Package,
+  Settings,
+  ShieldCheck,
+  ShoppingCart,
+  Truck,
   UserPlus,
+  X,
 } from "lucide-react";
 import Link from "next/link";
+import { useCart } from "@/hooks/use-cart";
 
 interface UserInfo {
   nickname: string;
   phone: string;
-  avatar?: string;
 }
 
+const orderStatusItems = [
+  { icon: CreditCard, label: "待付款", statusKey: "UNPAID", href: "/orders" },
+  { icon: Package, label: "待发货", statusKey: "PAID", href: "/orders" },
+  { icon: Truck, label: "已发货", statusKey: "SHIPPED", href: "/orders" },
+  { icon: CheckCircle, label: "已完成", statusKey: "COMPLETED", href: "/orders" },
+];
+
+const menuItems = [
+  { icon: Package, label: "我的订单", desc: "查看购物记录和物流", href: "/orders", color: "bg-blue-50 text-blue-600" },
+  { icon: MessageSquareText, label: "售后记录", desc: "查看报损处理进度", href: "/complaint/history", color: "bg-rose-50 text-rose-500" },
+  { icon: MapPin, label: "收货地址", desc: "管理常用收货地址", href: "/address", color: "bg-emerald-50 text-emerald-600" },
+  { icon: MessageSquareText, label: "提交售后", desc: "问题在站内流转处理", href: "/complaint", color: "bg-amber-50 text-amber-600" },
+];
+
 export default function ProfilePage() {
+  const router = useRouter();
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
   const [user, setUser] = useState<UserInfo | null>(null);
-  const [loginPhone, setLoginPhone] = useState("");
-  const [loginCode, setLoginCode] = useState("");
-  const [codeSent, setCodeSent] = useState(false);
-  const [countdown, setCountdown] = useState(0);
+  const [orderCounts, setOrderCounts] = useState<Record<string, number>>({});
+  const itemCount = useCart((s) => s.getItemCount());
 
   useEffect(() => {
     const saved = localStorage.getItem("c_user");
     if (saved) {
       try {
-        setUser(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        queueMicrotask(() => setUser(parsed));
       } catch {}
     }
   }, []);
 
-  // Countdown timer for verification code
   useEffect(() => {
-    if (countdown <= 0) return;
-    const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [countdown]);
-
-  const handleSendCode = () => {
-    if (!loginPhone || loginPhone.length !== 11) {
-      return;
+    if (user?.phone) {
+      fetch(`/api/orders/count?phone=${user.phone}`)
+        .then((r) => r.json())
+        .then((d) => { if (d.counts) setOrderCounts(d.counts); })
+        .catch(() => {});
+    } else {
+      setOrderCounts({});
     }
-    setCodeSent(true);
-    setCountdown(60);
-  };
-
-  const handleLogin = () => {
-    if (!loginPhone || !loginCode) return;
-    const userInfo: UserInfo = {
-      nickname: `用户${loginPhone.slice(-4)}`,
-      phone: loginPhone,
-    };
-    localStorage.setItem("c_user", JSON.stringify(userInfo));
-    setUser(userInfo);
-    setShowLogin(false);
-    setLoginPhone("");
-    setLoginCode("");
-    setCodeSent(false);
-  };
+  }, [user]);
 
   const handleLogout = () => {
     localStorage.removeItem("c_user");
     setUser(null);
     setShowSettings(false);
+    router.replace("/home");
   };
 
-  const orderStatusItems = [
-    { icon: CreditCard, label: "待付款", count: 0, href: "/orders" },
-    { icon: Package, label: "待发货", count: 1, href: "/orders" },
-    { icon: Truck, label: "已发货", count: 0, href: "/orders" },
-    { icon: CheckCircle, label: "已完成", count: 3, href: "/orders" },
-  ];
-
-  const menuItems = [
-    { icon: Package, label: "我的订单", desc: "查看全部订单", href: "/orders", color: "bg-blue-50 text-blue-500" },
-    { icon: MessageSquareText, label: "售后记录", desc: "查看全部售后", href: "/complaint/history", color: "bg-orange-50 text-orange-500" },
-    { icon: MapPin, label: "收货地址", desc: "管理收货地址", href: "/address", color: "bg-emerald-50 text-emerald-500" },
-    { icon: Phone, label: "联系站长", desc: "咨询与帮助", href: "tel:13800000002", color: "bg-purple-50 text-purple-500" },
-  ];
-
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* User Card */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 px-5 pt-14 pb-8">
-        <div className="absolute -top-14 -right-14 w-48 h-48 rounded-full bg-white/10" />
-        <div className="absolute bottom-0 -left-10 w-32 h-32 rounded-full bg-white/5" />
-        <div className="absolute top-8 right-5 w-24 h-24 rounded-full bg-white/5" />
-
-        <div className="relative z-10 flex items-center gap-4">
-          {user ? (
-            <>
-              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center overflow-hidden shadow-lg">
-                <div className="w-full h-full bg-gradient-to-br from-blue-300 to-indigo-400 flex items-center justify-center text-white text-2xl font-bold">
-                  {user.nickname[0]}
-                </div>
-              </div>
-              <div className="text-white">
-                <h1 className="text-lg font-bold tracking-wide">{user.nickname}</h1>
-                <p className="text-white/70 text-xs mt-1">手机: {user.phone}</p>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-lg">
-                <UserPlus size={28} className="text-white/80" />
-              </div>
-              <div className="text-white flex-1">
-                <h1 className="text-lg font-bold tracking-wide">未登录</h1>
-                <p className="text-white/70 text-xs mt-1">登录后享受更多服务</p>
-              </div>
-              <button
-                onClick={() => setShowLogin(true)}
-                className="bg-white/20 backdrop-blur-md rounded-full px-5 py-2.5 text-sm font-medium text-white active:scale-95 transition-transform"
+    <div className="min-h-screen mini-premium-bg pb-6">
+      <section className="px-4 pt-4">
+        <div className="mini-glass-panel-dark overflow-hidden p-4 text-white">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-white/14 text-2xl font-bold shadow-lg backdrop-blur-md">
+              {user ? user.nickname[0] : <UserPlus size={28} />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs tracking-[0.18em] text-white/60">MY ACCOUNT</p>
+              <h1 className="mt-1 text-xl font-semibold">{user ? user.nickname : "未登录"}</h1>
+              <p className="mt-1 truncate text-sm text-white/70">
+                {user ? `手机号 ${user.phone}` : "登录后可查看订单、售后和地址"}
+              </p>
+            </div>
+            {!user && (
+              <Link
+                href="/home"
+                className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition active:scale-95"
               >
-                立即登录
-              </button>
-            </>
-          )}
-        </div>
+                登录
+              </Link>
+            )}
+          </div>
 
-        {/* Order Status Quick Links - only when logged in */}
-        {user && (
-          <div className="relative z-10 mt-5 grid grid-cols-4 gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <div className="rounded-lg bg-white/12 p-3">
+              <div className="flex items-center gap-1.5 text-[11px] text-white/65">
+                <LockKeyhole size={12} />
+                手机授权
+              </div>
+              <p className="mt-1 text-sm font-semibold">{user ? "已完成" : "待授权"}</p>
+            </div>
+            <div className="rounded-lg bg-white/12 p-3">
+              <div className="flex items-center gap-1.5 text-[11px] text-white/65">
+                <ShieldCheck size={12} />
+                服务范围
+              </div>
+              <p className="mt-1 text-sm font-semibold">站点校验中</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-4 pt-4">
+        <div className="mini-glass-panel p-3">
+          <div className="mb-3 flex items-center justify-between px-1">
+            <div>
+              <p className="text-xs font-medium text-blue-600">订单服务</p>
+              <h2 className="text-base font-semibold text-slate-950">我的订单</h2>
+            </div>
+            <Link href="/orders" className="flex items-center gap-1 text-xs font-medium text-blue-600">
+              全部 <ChevronRight size={13} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
             {orderStatusItems.map((item) => {
               const Icon = item.icon;
+              const count = orderCounts[item.statusKey] || 0;
               return (
-                <Link key={item.label} href={item.href} className="bg-white/15 backdrop-blur-sm rounded-2xl py-3 text-center active:scale-95 transition-transform">
-                  <div className="relative inline-flex">
-                    <Icon size={20} className="text-white" />
-                    {item.count > 0 && (
-                      <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-orange-500 text-white text-[9px] font-bold px-1">
-                        {item.count}
+                <Link key={item.label} href={item.href} className="rounded-lg bg-white/80 px-2 py-3 text-center transition active:scale-95">
+                  <div className="relative mx-auto flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                    <Icon size={16} />
+                    {count > 0 && (
+                      <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
+                        {count}
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-white/80 mt-1">{item.label}</p>
+                  <p className="mt-2 text-[10px] font-medium text-slate-600">{item.label}</p>
                 </Link>
               );
             })}
           </div>
-        )}
-      </div>
+        </div>
+      </section>
 
-      {/* Main Menu */}
-      <div className="px-4 -mt-4 relative z-10">
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-50">
+      <section className="px-4 pt-3">
+        <div className="grid grid-cols-2 gap-3">
+          <Link href="/cart" className="mini-glass-panel p-4 transition active:scale-[0.98]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-50 text-cyan-600">
+              <ShoppingCart size={18} />
+            </div>
+            <p className="mt-3 text-sm font-semibold text-slate-900">购物车</p>
+            <p className="mt-1 text-[11px] text-slate-500">{itemCount} 件商品待结算</p>
+          </Link>
+          <button onClick={() => setShowSettings(true)} className="mini-glass-panel p-4 text-left transition active:scale-[0.98]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+              <Settings size={18} />
+            </div>
+            <p className="mt-3 text-sm font-semibold text-slate-900">账户设置</p>
+            <p className="mt-1 text-[11px] text-slate-500">授权、隐私与退出</p>
+          </button>
+        </div>
+      </section>
+
+      <section className="px-4 pt-3">
+        <div className="mini-glass-panel overflow-hidden">
           {menuItems.map((item, index) => {
             const Icon = item.icon;
             return (
-              <Link key={item.label} href={item.href} className={`flex items-center gap-3 px-4 py-3.5 active:bg-gray-50 transition-colors ${index !== menuItems.length - 1 ? "border-b border-gray-50" : ""}`}>
-                <div className={`w-9 h-9 rounded-xl ${item.color} flex items-center justify-center flex-shrink-0`}>
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-3.5 transition active:bg-white/70 ${
+                  index !== menuItems.length - 1 ? "border-b border-white/70" : ""
+                }`}
+              >
+                <div className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg ${item.color}`}>
                   <Icon size={17} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-800">{item.label}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{item.desc}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-slate-900">{item.label}</p>
+                  <p className="mt-0.5 text-[11px] text-slate-500">{item.desc}</p>
                 </div>
-                <ChevronRight size={16} className="text-gray-300 flex-shrink-0" />
+                <ChevronRight size={16} className="flex-shrink-0 text-slate-300" />
               </Link>
             );
           })}
         </div>
-      </div>
+      </section>
 
-      {/* Secondary Menu */}
-      <div className="px-4 mt-3">
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-50">
-          {user && (
-            <button onClick={() => setShowSettings(true)} className="w-full flex items-center gap-3 px-4 py-3.5 active:bg-gray-50 transition-colors border-b border-gray-50">
-              <Settings size={18} className="text-gray-400" />
-              <span className="flex-1 text-sm text-gray-700 text-left">设置</span>
-              <ChevronRight size={16} className="text-gray-300" />
-            </button>
-          )}
-          <button onClick={() => setShowAbout(true)} className="w-full flex items-center gap-3 px-4 py-3.5 active:bg-gray-50 transition-colors border-b border-gray-50">
-            <Info size={18} className="text-gray-400" />
-            <span className="flex-1 text-sm text-gray-700 text-left">关于优采智管</span>
-            <ChevronRight size={16} className="text-gray-300" />
+      <section className="px-4 pt-3">
+        <div className="mini-glass-panel overflow-hidden">
+          <button onClick={() => setShowAbout(true)} className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition active:bg-white/70">
+            <Info size={18} className="text-slate-400" />
+            <span className="flex-1 text-sm font-medium text-slate-700">关于优采智管</span>
+            <ChevronRight size={16} className="text-slate-300" />
           </button>
-          <Link href="/home" className="w-full flex items-center gap-3 px-4 py-3.5 active:bg-gray-50 transition-colors">
-            <Shield size={18} className="text-gray-400" />
-            <span className="flex-1 text-sm text-gray-700 text-left">切换管理后台</span>
-            <ChevronRight size={16} className="text-gray-300" />
+          <Link href="/home" className="flex items-center gap-3 border-t border-white/70 px-4 py-3.5 transition active:bg-white/70">
+            <BadgeCheck size={18} className="text-slate-400" />
+            <span className="flex-1 text-sm font-medium text-slate-700">切换管理后台</span>
+            <ChevronRight size={16} className="text-slate-300" />
           </Link>
         </div>
-      </div>
+      </section>
 
-      {/* App Version */}
-      <p className="text-center text-[10px] text-gray-300 mt-6 mb-4">优采智管 v1.0.0</p>
-
-      {/* Login Modal */}
-      {showLogin && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-end justify-center" onClick={() => setShowLogin(false)}>
-          <div className="bg-white rounded-t-3xl w-full max-w-lg animate-in slide-in-from-bottom" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800">手机号登录</h2>
-              <button onClick={() => setShowLogin(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                <X size={16} className="text-gray-500" />
-              </button>
-            </div>
-            <div className="p-5 space-y-4">
-              {/* Phone Input */}
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1.5 block">手机号</label>
-                <input
-                  type="tel"
-                  maxLength={11}
-                  value={loginPhone}
-                  onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, ""))}
-                  placeholder="请输入手机号"
-                  className="w-full rounded-xl bg-slate-50 border border-gray-200 px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-all"
-                />
-              </div>
-
-              {/* Verification Code */}
-              <div>
-                <label className="text-sm font-medium text-gray-700 mb-1.5 block">验证码</label>
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={loginCode}
-                    onChange={(e) => setLoginCode(e.target.value.replace(/\D/g, ""))}
-                    placeholder="请输入验证码"
-                    className="flex-1 rounded-xl bg-slate-50 border border-gray-200 px-4 py-3 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-all"
-                  />
-                  <button
-                    onClick={handleSendCode}
-                    disabled={loginPhone.length !== 11 || countdown > 0}
-                    className="flex-shrink-0 px-4 rounded-xl text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-blue-50 text-blue-500 hover:bg-blue-100 active:scale-95"
-                  >
-                    {countdown > 0 ? `${countdown}s` : codeSent ? "重新发送" : "获取验证码"}
-                  </button>
-                </div>
-              </div>
-
-              {/* Demo quick fill */}
-              <div className="pt-2">
-                <p className="text-[11px] text-gray-400 mb-2">快速体验（点击填充）</p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => { setLoginPhone("13900001111"); setLoginCode("123456"); setCodeSent(true); }}
-                    className="px-3 py-1.5 rounded-full bg-blue-50 text-blue-500 text-xs font-medium active:scale-95 transition-transform"
-                  >
-                    139****1111
-                  </button>
-                  <button
-                    onClick={() => { setLoginPhone("13800000002"); setLoginCode("123456"); setCodeSent(true); }}
-                    className="px-3 py-1.5 rounded-full bg-blue-50 text-blue-500 text-xs font-medium active:scale-95 transition-transform"
-                  >
-                    138****0002
-                  </button>
-                </div>
-              </div>
-
-              {/* Login Button */}
-              <button
-                onClick={handleLogin}
-                disabled={!loginPhone || !loginCode}
-                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold text-base shadow-lg shadow-blue-500/25 disabled:opacity-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-              >
-                <LogIn size={18} />
-                登录
-              </button>
-
-              <p className="text-center text-[10px] text-gray-400">
-                登录即表示同意《用户协议》和《隐私政策》
-              </p>
-            </div>
-            <div className="h-6" />
-          </div>
-        </div>
-      )}
-
-      {/* Settings Modal */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-end justify-center" onClick={() => setShowSettings(false)}>
-          <div className="bg-white rounded-t-3xl w-full max-w-lg animate-in slide-in-from-bottom" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800">设置</h2>
-              <button onClick={() => setShowSettings(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                <X size={16} className="text-gray-500" />
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/45" onClick={() => setShowSettings(false)}>
+          <div className="w-full max-w-md rounded-t-lg bg-white px-5 pb-8 pt-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">账户设置</h2>
+              <button onClick={() => setShowSettings(false)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
+                <X size={16} className="text-slate-500" />
               </button>
             </div>
-            <div className="p-4 space-y-1">
-              <button className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl hover:bg-gray-50">
-                <Bell size={18} className="text-blue-500" />
-                <span className="flex-1 text-sm text-gray-700 text-left">消息通知</span>
-                <ChevronRight size={16} className="text-gray-300" />
-              </button>
-              <button className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl hover:bg-gray-50">
-                <Palette size={18} className="text-purple-500" />
-                <span className="flex-1 text-sm text-gray-700 text-left">主题设置</span>
-                <ChevronRight size={16} className="text-gray-300" />
-              </button>
-              <button className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl hover:bg-gray-50">
-                <FileText size={18} className="text-emerald-500" />
-                <span className="flex-1 text-sm text-gray-700 text-left">隐私政策</span>
-                <ChevronRight size={16} className="text-gray-300" />
-              </button>
-              <div className="border-t border-gray-100 my-2" />
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center gap-3 px-3 py-3.5 rounded-xl text-red-500 active:bg-red-50 transition-colors"
-              >
-                <LogOut size={18} />
-                <span className="flex-1 text-sm text-left">退出登录</span>
-              </button>
+            <div className="space-y-2">
+              <div className="flex items-center gap-3 rounded-lg bg-slate-50 p-3">
+                <Bell size={17} className="text-blue-600" />
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">服务通知</p>
+                  <p className="text-[11px] text-slate-500">订单、售后和报名进度提醒</p>
+                </div>
+              </div>
+              {user ? (
+                <button onClick={handleLogout} className="flex w-full items-center justify-center gap-2 rounded-lg bg-rose-50 py-3 text-sm font-semibold text-rose-500">
+                  <LogOut size={16} />
+                  退出登录
+                </button>
+              ) : (
+                <Link href="/home" className="block w-full rounded-lg bg-slate-950 py-3 text-center text-sm font-semibold text-white">
+                  去登录
+                </Link>
+              )}
             </div>
-            <div className="h-6" />
           </div>
         </div>
       )}
 
-      {/* About Modal */}
       {showAbout && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-end justify-center" onClick={() => setShowAbout(false)}>
-          <div className="bg-white rounded-t-3xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800">关于优采智管</h2>
-              <button onClick={() => setShowAbout(false)} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                <X size={16} className="text-gray-500" />
-              </button>
-            </div>
-            <div className="p-6 text-center">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <span className="text-3xl font-bold text-white">U</span>
-              </div>
-              <h3 className="text-lg font-bold text-gray-800">优采智管・全域管理系统</h3>
-              <p className="text-sm text-gray-500 mt-1">UCZM · Optimal Collection Intelligent Management</p>
-              <p className="text-xs text-blue-500 mt-2 font-medium">优采赋能，智管全域</p>
-              <p className="text-xs text-gray-400 mt-4">版本: 1.0.0</p>
-              <p className="text-xs text-gray-400 mt-1">© 2026 UCZM 版权所有</p>
-            </div>
-            <div className="h-6" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-6" onClick={() => setShowAbout(false)}>
+          <div className="w-full max-w-sm rounded-lg bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-slate-900">优采智管</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              多多买菜站长私域经营系统，覆盖售后报损、站长商场、招聘报名和个人服务中心。
+            </p>
+            <button onClick={() => setShowAbout(false)} className="mt-5 w-full rounded-lg bg-slate-950 py-3 text-sm font-semibold text-white">
+              知道了
+            </button>
           </div>
         </div>
       )}

@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAgentOrAdmin } from "@/lib/api-auth";
 
 export async function POST(request: Request) {
   try {
+    const { user, error } = await requireAgentOrAdmin();
+    if (error) return error;
+
     const body = await request.json();
     const { id, resolveType, resolveRemark } = body;
 

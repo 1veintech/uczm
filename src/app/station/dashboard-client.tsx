@@ -113,9 +113,9 @@ export default function DashboardClient({
 
   return (
     <div className="space-y-6">
-      {/* Welcome banner */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 p-6 lg:p-8 shadow-lg shadow-blue-500/20">
-        <div className="absolute top-4 right-4 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
+      <div className="relative overflow-hidden rounded-lg bg-[linear-gradient(135deg,#07111F,#12325F_58%,#0E7490)] p-6 shadow-xl shadow-blue-950/15 lg:p-8">
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)] bg-[size:30px_30px]" />
+        <div className="absolute right-4 top-4 rounded-lg border border-white/15 bg-white/10 px-4 py-2 backdrop-blur-sm">
           <p className="text-[10px] text-white/60">所属区域</p>
           <p className="text-sm font-bold text-white">{region}</p>
         </div>
@@ -128,10 +128,6 @@ export default function DashboardClient({
             欢迎回到{stationName}管理后台，今天也要加油哦！
           </p>
         </div>
-        <div className="absolute right-0 top-0 h-full w-1/3 opacity-10">
-          <div className="absolute right-8 top-8 h-32 w-32 rounded-full bg-white" />
-          <div className="absolute right-24 top-20 h-20 w-20 rounded-full bg-white" />
-        </div>
         <div className="absolute bottom-0 right-12 w-40 h-40 opacity-5">
           <TrendingUp className="w-full h-full text-white" />
         </div>
@@ -142,7 +138,7 @@ export default function DashboardClient({
         {statCards.map((card) => (
           <Card
             key={card.title}
-            className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
+            className="border-slate-200 bg-white/[0.92] shadow-sm transition-shadow hover:shadow-md"
           >
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
@@ -163,7 +159,7 @@ export default function DashboardClient({
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Revenue chart */}
-        <Card className="lg:col-span-2 bg-white border border-gray-200 shadow-sm">
+        <Card className="border-slate-200 bg-white/[0.92] shadow-sm lg:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-gray-900 text-base font-semibold">
               近7日收入趋势
@@ -216,7 +212,7 @@ export default function DashboardClient({
         </Card>
 
         {/* Quick actions */}
-        <Card className="bg-white border border-gray-200 shadow-sm">
+        <Card className="border-slate-200 bg-white/[0.92] shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-gray-900 text-base font-semibold">
               快捷操作
@@ -226,7 +222,7 @@ export default function DashboardClient({
             <div className="grid grid-cols-2 gap-3">
               {quickActions.map((action) => (
                 <Link key={action.title} href={action.href}>
-                  <div className="flex flex-col items-center gap-2.5 rounded-xl border border-gray-100 p-4 transition-all hover:bg-gray-50 hover:border-gray-200 hover:shadow-sm cursor-pointer">
+                  <div className="flex cursor-pointer flex-col items-center gap-2.5 rounded-lg border border-gray-100 p-4 transition-all hover:border-gray-200 hover:bg-gray-50 hover:shadow-sm">
                     <div className={`rounded-xl ${action.bg} p-2.5`}>
                       <action.icon className={`h-5 w-5 ${action.color}`} />
                     </div>
@@ -240,7 +236,7 @@ export default function DashboardClient({
       </div>
 
       {/* Recent complaints */}
-      <Card className="bg-white border border-gray-200 shadow-sm">
+      <Card className="border-slate-200 bg-white/[0.92] shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-gray-900 text-base font-semibold">最近客诉</CardTitle>
           <Link href="/station/complaints">

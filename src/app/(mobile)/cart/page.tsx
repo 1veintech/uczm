@@ -39,7 +39,7 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-slate-50">
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 mini-page">
         <div className="w-24 h-24 rounded-full bg-blue-50 flex items-center justify-center mb-4">
           <ShoppingCart size={40} className="text-blue-300" />
         </div>
@@ -49,7 +49,7 @@ export default function CartPage() {
         <p className="text-sm text-gray-400 mb-6">快去商城逛逛吧</p>
         <Link
           href="/mall"
-          className="px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-semibold shadow-lg shadow-blue-500/25 active:scale-95 transition-transform"
+          className="px-6 py-2.5 mini-primary text-white text-sm font-semibold shadow-lg shadow-blue-500/25 active:scale-95 transition-transform"
         >
           去逛逛
         </Link>
@@ -58,9 +58,9 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-36">
+    <div className="min-h-screen mini-page pb-36">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100">
+      <div className="sticky top-0 z-40 mini-topbar">
         <div className="flex items-center justify-between h-12 px-4">
           <h1 className="text-base font-semibold text-gray-800">
             购物车 ({items.length})
@@ -81,7 +81,7 @@ export default function CartPage() {
         {items.map((item) => (
           <div
             key={item.productId}
-            className="bg-white rounded-2xl shadow-sm p-3 flex gap-3 border border-gray-50"
+            className="mini-card p-3 flex gap-3 "
           >
             {/* Checkbox */}
             <button
@@ -115,7 +115,7 @@ export default function CartPage() {
             <img
               src={item.image}
               alt={item.name}
-              className="w-20 h-20 rounded-xl object-cover flex-shrink-0"
+              className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
             />
 
             {/* Info */}
@@ -155,7 +155,7 @@ export default function CartPage() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="fixed bottom-16 left-0 right-0 z-50 bg-white border-t border-gray-100 px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.04)]">
+      <div className="fixed bottom-16 left-0 right-0 z-50 mini-bottom-bar px-4 py-3 shadow-[0_-2px_12px_rgba(0,0,0,0.04)]">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -191,7 +191,7 @@ export default function CartPage() {
               href="/checkout"
               className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all ${
                 selectedItems.length > 0
-                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 active:scale-95"
+                  ? "mini-primary text-white shadow-lg shadow-blue-500/25 active:scale-95"
                   : "bg-gray-200 text-gray-400 pointer-events-none"
               }`}
             >

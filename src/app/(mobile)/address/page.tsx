@@ -114,9 +114,9 @@ export default function AddressPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen mini-page">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
+      <div className="mini-topbar">
         <div className="flex items-center gap-3 px-4 py-3">
           <button onClick={() => history.back()} className="w-8 h-8 flex items-center justify-center">
             <ArrowLeft size={20} className="text-gray-600" />
@@ -141,7 +141,7 @@ export default function AddressPage() {
             <p className="text-sm text-gray-400">暂无收货地址</p>
             <button
               onClick={() => setShowForm(true)}
-              className="mt-4 px-6 py-2.5 rounded-xl bg-blue-500 text-white text-sm font-medium active:scale-95 transition-transform"
+              className="mt-4 px-6 py-2.5 rounded-lg mini-primary text-sm font-medium active:scale-95 transition-transform"
             >
               新增收货地址
             </button>
@@ -150,7 +150,7 @@ export default function AddressPage() {
           addresses.map((addr) => (
             <div
               key={addr.id}
-              className={`bg-white rounded-2xl p-4 border ${addr.isDefault ? "border-blue-200" : "border-gray-100"} shadow-sm`}
+              className={`mini-card p-4 border ${addr.isDefault ? "border-blue-200" : "border-gray-100"} shadow-sm`}
             >
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
@@ -195,7 +195,7 @@ export default function AddressPage() {
 
         {/* Add/Edit Form */}
         {showForm && (
-          <div className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+          <div className="mini-card p-4  shadow-sm">
             <h3 className="text-sm font-bold text-gray-800 mb-3">
               {editingId ? "编辑地址" : "新增地址"}
             </h3>
@@ -208,7 +208,7 @@ export default function AddressPage() {
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="姓名"
-                    className="w-full rounded-xl bg-slate-50 border border-gray-200 px-3 py-2.5 text-sm"
+                    className="w-full rounded-lg mini-input px-3 py-2.5 text-sm"
                   />
                 </div>
                 <div>
@@ -219,7 +219,7 @@ export default function AddressPage() {
                     value={form.phone}
                     onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "") })}
                     placeholder="手机号"
-                    className="w-full rounded-xl bg-slate-50 border border-gray-200 px-3 py-2.5 text-sm"
+                    className="w-full rounded-lg mini-input px-3 py-2.5 text-sm"
                   />
                 </div>
               </div>
@@ -231,7 +231,7 @@ export default function AddressPage() {
                     value={form.province}
                     onChange={(e) => setForm({ ...form, province: e.target.value })}
                     placeholder="省"
-                    className="w-full rounded-xl bg-slate-50 border border-gray-200 px-3 py-2.5 text-sm"
+                    className="w-full rounded-lg mini-input px-3 py-2.5 text-sm"
                   />
                 </div>
                 <div>
@@ -241,7 +241,7 @@ export default function AddressPage() {
                     value={form.city}
                     onChange={(e) => setForm({ ...form, city: e.target.value })}
                     placeholder="市"
-                    className="w-full rounded-xl bg-slate-50 border border-gray-200 px-3 py-2.5 text-sm"
+                    className="w-full rounded-lg mini-input px-3 py-2.5 text-sm"
                   />
                 </div>
                 <div>
@@ -251,7 +251,7 @@ export default function AddressPage() {
                     value={form.district}
                     onChange={(e) => setForm({ ...form, district: e.target.value })}
                     placeholder="区"
-                    className="w-full rounded-xl bg-slate-50 border border-gray-200 px-3 py-2.5 text-sm"
+                    className="w-full rounded-lg mini-input px-3 py-2.5 text-sm"
                   />
                 </div>
               </div>
@@ -262,7 +262,7 @@ export default function AddressPage() {
                   value={form.detail}
                   onChange={(e) => setForm({ ...form, detail: e.target.value })}
                   placeholder="街道、楼栋、门牌号"
-                  className="w-full rounded-xl bg-slate-50 border border-gray-200 px-3 py-2.5 text-sm"
+                  className="w-full rounded-lg mini-input px-3 py-2.5 text-sm"
                 />
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -278,13 +278,13 @@ export default function AddressPage() {
             <div className="flex gap-3 mt-4">
               <button
                 onClick={resetForm}
-                className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 active:scale-95"
+                className="flex-1 py-2.5 rounded-lg border border-gray-200 text-sm text-gray-600 active:scale-95"
               >
                 取消
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 py-2.5 rounded-xl bg-blue-500 text-white text-sm font-medium active:scale-95"
+                className="flex-1 py-2.5 rounded-lg mini-primary text-sm font-medium active:scale-95"
               >
                 保存
               </button>
@@ -295,10 +295,10 @@ export default function AddressPage() {
 
       {/* Bottom add button */}
       {!showForm && addresses.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-100">
+        <div className="mini-bottom-bar fixed bottom-0 left-0 right-0 p-4">
           <button
             onClick={() => { resetForm(); setShowForm(true); }}
-            className="w-full py-3 rounded-2xl bg-blue-500 text-white font-medium text-sm flex items-center justify-center gap-2 active:scale-[0.98] shadow-lg shadow-blue-500/25"
+            className="w-full py-3 rounded-lg mini-primary font-medium text-sm flex items-center justify-center gap-2 active:scale-[0.98] shadow-lg shadow-blue-500/25"
           >
             <Plus size={18} />
             新增收货地址

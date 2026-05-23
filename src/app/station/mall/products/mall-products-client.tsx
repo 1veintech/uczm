@@ -33,6 +33,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface MallProduct {
   id: string;
@@ -60,7 +61,7 @@ export default function MallProductsClient({ products }: MallProductsClientProps
 
   // Form state
   const [formName, setFormName] = useState("");
-  const [formImages, setFormImages] = useState("");
+  const [formImages, setFormImages] = useState<string[]>([]);
   const [formDescription, setFormDescription] = useState("");
   const [formPrice, setFormPrice] = useState("");
   const [formOriginalPrice, setFormOriginalPrice] = useState("");
@@ -74,7 +75,7 @@ export default function MallProductsClient({ products }: MallProductsClientProps
 
   const resetForm = () => {
     setFormName("");
-    setFormImages("");
+    setFormImages([]);
     setFormDescription("");
     setFormPrice("");
     setFormOriginalPrice("");
@@ -84,7 +85,12 @@ export default function MallProductsClient({ products }: MallProductsClientProps
   const openEditDialog = (product: MallProduct) => {
     setSelectedProduct(product);
     setFormName(product.name);
-    setFormImages(product.images);
+    try {
+      const parsed = JSON.parse(product.images);
+      setFormImages(Array.isArray(parsed) ? parsed : []);
+    } catch {
+      setFormImages([]);
+    }
     setFormDescription(product.description ?? "");
     setFormPrice(String(product.price));
     setFormOriginalPrice(product.originalPrice ? String(product.originalPrice) : "");
@@ -99,8 +105,8 @@ export default function MallProductsClient({ products }: MallProductsClientProps
     }
     setIsSubmitting(true);
     try {
-      const imagesArray = formImages
-        ? formImages.split(",").map((s) => s.trim()).filter(Boolean)
+      const imagesArray = formImages.length > 0
+        ? formImages
         : [`https://picsum.photos/seed/${Date.now()}/400/400`];
       const res = await fetch("/api/products", {
         method: "POST",
@@ -136,15 +142,12 @@ export default function MallProductsClient({ products }: MallProductsClientProps
     }
     setIsSubmitting(true);
     try {
-      const imagesArray = formImages
-        ? formImages.split(",").map((s) => s.trim()).filter(Boolean)
-        : [];
       const res = await fetch(`/api/products/${selectedProduct.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formName,
-          images: JSON.stringify(imagesArray),
+          images: JSON.stringify(formImages),
           description: formDescription,
           price: parseFloat(formPrice),
           originalPrice: formOriginalPrice ? parseFloat(formOriginalPrice) : null,
@@ -436,13 +439,8 @@ export default function MallProductsClient({ products }: MallProductsClientProps
               />
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-600 mb-1.5">图片URL (多个用逗号分隔)</p>
-              <Input
-                placeholder="https://img1.jpg, https://img2.jpg"
-                value={formImages}
-                onChange={(e) => setFormImages(e.target.value)}
-                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400"
-              />
+              <p className="text-xs font-medium text-gray-600 mb-1.5">商品图片（最多20张）</p>
+              <ImageUpload value={formImages} onChange={setFormImages} maxFiles={20} />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 mb-1.5">商品描述</p>
@@ -539,13 +537,8 @@ export default function MallProductsClient({ products }: MallProductsClientProps
               />
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-600 mb-1.5">图片URL (多个用逗号分隔)</p>
-              <Input
-                placeholder="https://img1.jpg, https://img2.jpg"
-                value={formImages}
-                onChange={(e) => setFormImages(e.target.value)}
-                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400"
-              />
+              <p className="text-xs font-medium text-gray-600 mb-1.5">商品图片（最多20张）</p>
+              <ImageUpload value={formImages} onChange={setFormImages} maxFiles={20} />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 mb-1.5">商品描述</p>

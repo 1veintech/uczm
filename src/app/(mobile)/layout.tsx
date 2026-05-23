@@ -2,26 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, ShoppingBag, ShoppingCart, User } from "lucide-react";
-import { useCart } from "@/hooks/use-cart";
+import { BriefcaseBusiness, Home, ShoppingBag, User } from "lucide-react";
 
 const tabs = [
   { href: "/", label: "首页", icon: Home },
-  { href: "/mall", label: "商城", icon: ShoppingBag },
-  { href: "/cart", label: "购物车", icon: ShoppingCart },
+  { href: "/mall", label: "商场", icon: ShoppingBag },
+  { href: "/jobs", label: "招聘", icon: BriefcaseBusiness },
   { href: "/profile", label: "我的", icon: User },
 ];
 
 export default function MobileLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const itemCount = useCart((s) => s.getItemCount());
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans">
-      <main className="max-w-md mx-auto pb-20">{children}</main>
-      {/* Bottom Tab Bar - mini-program style */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-[0_-2px_16px_rgba(0,0,0,0.05)]">
-        <div className="max-w-md mx-auto flex items-center justify-around h-[60px] pb-[env(safe-area-inset-bottom)]">
+    <div className="min-h-screen mini-premium-bg font-sans">
+      <main className="mx-auto max-w-md pb-24">{children}</main>
+      <nav className="mini-bottom-bar fixed bottom-0 left-0 right-0 z-50 px-3 pb-[max(env(safe-area-inset-bottom),8px)] pt-2">
+        <div className="mx-auto grid h-[62px] max-w-md grid-cols-4 items-center rounded-lg border border-white/70 bg-white/90 px-2 shadow-[0_-12px_40px_rgba(26,74,139,0.14)] backdrop-blur-xl">
           {tabs.map((tab) => {
             const isActive =
               tab.href === "/"
@@ -32,27 +29,26 @@ export default function MobileLayout({ children }: { children: React.ReactNode }
               <Link
                 key={tab.href}
                 href={tab.href}
-                className="flex flex-col items-center justify-center gap-1 relative w-16 py-1"
+                className={`relative flex h-full flex-col items-center justify-center gap-1 transition-colors ${
+                  isActive ? "text-blue-600" : "text-slate-400"
+                }`}
               >
-                <div className="relative">
+                <div className={`relative flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
+                  isActive
+                    ? "bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-500/25"
+                    : "bg-transparent"
+                }`}>
                   <Icon
-                    size={22}
-                    className={
-                      isActive ? "text-[#3B82F6]" : "text-gray-400"
-                    }
+                    size={21}
+                    className={isActive ? "text-white" : "text-slate-400"}
                     strokeWidth={isActive ? 2.4 : 1.8}
                   />
-                  {tab.href === "/cart" && itemCount > 0 && (
-                    <span className="absolute -top-1.5 -right-2.5 min-w-[16px] h-4 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[10px] font-bold px-1 leading-none">
-                      {itemCount > 99 ? "99+" : itemCount}
-                    </span>
-                  )}
                 </div>
                 <span
                   className={`text-[10px] leading-none ${
                     isActive
-                      ? "text-[#3B82F6] font-semibold"
-                      : "text-gray-400"
+                      ? "font-semibold text-blue-600"
+                      : "text-slate-400"
                   }`}
                 >
                   {tab.label}

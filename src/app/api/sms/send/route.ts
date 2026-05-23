@@ -42,8 +42,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: "验证码已发送",
-        // 开发环境返回验证码，生产环境不返回
-        ...(process.env.NODE_ENV === "development" && { code }),
+        // 仅在明确设置的调试模式下返回验证码
+        ...(process.env.SMS_DEBUG === "true" && { code }),
       });
     } else {
       return NextResponse.json(

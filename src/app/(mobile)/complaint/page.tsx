@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ArrowLeft, Camera, X, Loader2, CheckCircle2, LogIn } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowLeft, Camera, X, Loader2, CheckCircle2, LogIn, Upload } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -20,14 +20,27 @@ export default function ComplaintPage() {
   const [problemType, setProblemType] = useState("");
   const [description, setDescription] = useState("");
   const [orderNo, setOrderNo] = useState("");
-  const [images, setImages] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  // 清理预览 URL 防止内存泄漏
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((url) => {
+        if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+      });
+    };
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("c_user");
     if (saved) {
-      try { setUser(JSON.parse(saved)); } catch {}
+      try {
+        const parsed = JSON.parse(saved);
+        queueMicrotask(() => setUser(parsed));
+      } catch {}
     }
   }, []);
 
@@ -35,31 +48,37 @@ export default function ComplaintPage() {
     const files = e.target.files;
     if (!files) return;
     Array.from(files).forEach((file) => {
-      if (images.length >= 4) return;
+      if (imageFiles.length >= 4) return;
       if (file.size > 5 * 1024 * 1024) {
         toast.error("图片大小不能超过5MB");
         return;
       }
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImages((prev) => {
-          if (prev.length >= 4) return prev;
-          return [...prev, reader.result as string];
-        });
-      };
-      reader.readAsDataURL(file);
+      // 用 object URL 做预览（不轉 base64）
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreviews((prev) => {
+        if (prev.length >= 4) return prev;
+        return [...prev, previewUrl];
+      });
+      setImageFiles((prev) => {
+        if (prev.length >= 4) return prev;
+        return [...prev, file];
+      });
     });
     e.target.value = "";
   };
 
   const handleRemoveImage = (index: number) => {
-    setImages(images.filter((_, i) => i !== index));
+    // 释放 object URL
+    const url = imagePreviews[index];
+    if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+    setImagePreviews(imagePreviews.filter((_, i) => i !== index));
+    setImageFiles(imageFiles.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
     if (!user) {
       toast.error("请先登录后再提交");
-      router.push("/login");
+      router.push("/home");
       return;
     }
     if (!problemType) {
@@ -73,13 +92,41 @@ export default function ComplaintPage() {
 
     setSubmitting(true);
     try {
-      // 先根据手机号查找客户ID
+      // 先根据手机号查找客户ID，不存在则自动创建
       const lookupRes = await fetch(`/api/customers/lookup?phone=${user.phone}`);
       const lookupData = await lookupRes.json();
-      if (!lookupData.customer) {
-        toast.error("未找到您的账户信息，请重新登录");
-        setSubmitting(false);
-        return;
+      let customerId = lookupData.customer?.id;
+      if (!customerId) {
+        const createRes = await fetch("/api/customers/upsert", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone: user.phone, nickname: user.nickname }),
+        });
+        const createData = await createRes.json();
+        if (!createData.customer?.id) {
+          toast.error("账户创建失败，请重新登录");
+          setSubmitting(false);
+          return;
+        }
+        customerId = createData.customer.id;
+      }
+
+      // 先上传图片到服务器获得 URL
+      const uploadedUrls: string[] = [];
+      if (imageFiles.length > 0) {
+        const uploadFormData = new FormData();
+        imageFiles.forEach((file) => uploadFormData.append("files", file));
+        const uploadRes = await fetch("/api/upload", {
+          method: "POST",
+          body: uploadFormData,
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.urls) {
+          uploadedUrls.push(...uploadData.urls);
+        }
+        if (uploadData.errors?.length > 0) {
+          toast.warning(`部分图片上传失败: ${uploadData.errors.join(", ")}`);
+        }
       }
 
       const res = await fetch("/api/complaints", {
@@ -89,8 +136,8 @@ export default function ComplaintPage() {
           problemType,
           description,
           orderNo: orderNo || undefined,
-          images,
-          customerId: lookupData.customer.id,
+          images: uploadedUrls,
+          customerId,
         }),
       });
 
@@ -113,7 +160,7 @@ export default function ComplaintPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-slate-50">
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 mini-page">
         <div className="w-20 h-20 rounded-full bg-green-50 flex items-center justify-center mb-4">
           <CheckCircle2 size={40} className="text-green-500" />
         </div>
@@ -128,7 +175,12 @@ export default function ComplaintPage() {
               setProblemType("");
               setDescription("");
               setOrderNo("");
-              setImages([]);
+              // 清理预览 URL
+              imagePreviews.forEach((url) => {
+                if (url.startsWith("blob:")) URL.revokeObjectURL(url);
+              });
+              setImageFiles([]);
+              setImagePreviews([]);
             }}
             className="px-5 py-2.5 rounded-full border border-gray-200 text-sm text-gray-600 active:bg-gray-50 transition-colors"
           >
@@ -136,7 +188,7 @@ export default function ComplaintPage() {
           </button>
           <Link
             href={`/complaint/history?phone=${user?.phone || ""}`}
-            className="px-5 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium shadow-sm shadow-blue-500/20 active:scale-95 transition-transform"
+            className="px-5 py-2.5 mini-primary text-white text-sm font-medium shadow-sm shadow-blue-500/20 active:scale-95 transition-transform"
           >
             查看售后记录
           </Link>
@@ -146,9 +198,9 @@ export default function ComplaintPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen mini-page">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-100">
+      <div className="sticky top-0 z-40 mini-topbar">
         <div className="flex items-center h-12 px-4">
           <Link href="/" className="p-1 -ml-1 active:scale-95 transition-transform">
             <ArrowLeft size={20} className="text-gray-700" />
@@ -162,22 +214,22 @@ export default function ComplaintPage() {
       <div className="px-4 py-4 space-y-3">
         {/* Login required prompt */}
         {!user && (
-          <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-50 text-center">
+          <div className="mini-card p-6  text-center">
             <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-3">
               <LogIn size={24} className="text-blue-400" />
             </div>
             <p className="text-sm font-medium text-gray-700 mb-1">请先登录</p>
             <p className="text-xs text-gray-400 mb-4">登录后即可提交售后反馈</p>
             <Link
-              href="/login"
-              className="inline-block px-8 py-2.5 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-medium shadow-sm shadow-blue-500/20 active:scale-95 transition-transform"
+              href="/home"
+              className="inline-block px-8 py-2.5 mini-primary text-white text-sm font-medium shadow-sm shadow-blue-500/20 active:scale-95 transition-transform"
             >
               去登录
             </Link>
           </div>
         )}
         {/* Problem Type */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-50">
+        <div className="mini-card p-4 ">
           <h3 className="text-sm font-semibold text-gray-800 mb-3">
             问题类型 <span className="text-red-400">*</span>
           </h3>
@@ -188,8 +240,8 @@ export default function ComplaintPage() {
                 onClick={() => setProblemType(type.value)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   problemType === type.value
-                    ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-500/20"
-                    : "bg-slate-50 text-gray-600 hover:bg-slate-100 border border-gray-100"
+                    ? "mini-primary text-white shadow-sm shadow-blue-500/20"
+                    : "mini-secondary text-gray-600 hover:bg-slate-100"
                 }`}
               >
                 {type.label}
@@ -199,7 +251,7 @@ export default function ComplaintPage() {
         </div>
 
         {/* Description */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-50">
+        <div className="mini-card p-4 ">
           <h3 className="text-sm font-semibold text-gray-800 mb-3">
             问题描述 <span className="text-red-400">*</span>
           </h3>
@@ -208,12 +260,12 @@ export default function ComplaintPage() {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="请详细描述您遇到的问题..."
             rows={4}
-            className="w-full rounded-xl bg-slate-50 border border-gray-100 px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-all"
+            className="w-full rounded-lg mini-input px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-all"
           />
         </div>
 
         {/* Image Upload */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-50">
+        <div className="mini-card p-4 ">
           <h3 className="text-sm font-semibold text-gray-800 mb-1">
             上传图片 <span className="text-gray-400 font-normal">(最多4张)</span>
           </h3>
@@ -221,8 +273,8 @@ export default function ComplaintPage() {
             手机可拍照或从相册选择，电脑可选择本地图片
           </p>
           <div className="flex flex-wrap gap-2">
-            {images.map((img, index) => (
-              <div key={index} className="relative w-20 h-20 rounded-xl overflow-hidden">
+            {imagePreviews.map((img, index) => (
+              <div key={index} className="relative w-20 h-20 rounded-lg overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={img} alt="" className="w-full h-full object-cover" />
                 <button
@@ -233,8 +285,8 @@ export default function ComplaintPage() {
                 </button>
               </div>
             ))}
-            {images.length < 4 && (
-              <label className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-300 hover:text-blue-400 transition-colors cursor-pointer">
+            {imagePreviews.length < 4 && (
+              <label className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-300 hover:text-blue-400 transition-colors cursor-pointer">
                 <Camera size={18} />
                 <span className="text-[10px]">点击上传</span>
                 <input
@@ -249,7 +301,7 @@ export default function ComplaintPage() {
         </div>
 
         {/* Order Number */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 border border-gray-50">
+        <div className="mini-card p-4 ">
           <h3 className="text-sm font-semibold text-gray-800 mb-3">
             订单号 <span className="text-gray-400 font-normal">(选填)</span>
           </h3>
@@ -258,7 +310,7 @@ export default function ComplaintPage() {
             value={orderNo}
             onChange={(e) => setOrderNo(e.target.value)}
             placeholder="请输入相关订单号"
-            className="w-full rounded-xl bg-slate-50 border border-gray-100 px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-all"
+            className="w-full rounded-lg mini-input px-3 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-300 transition-all"
           />
         </div>
 
@@ -267,7 +319,7 @@ export default function ComplaintPage() {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold text-base shadow-lg shadow-blue-500/25 disabled:opacity-60 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-lg mini-primary text-white font-semibold text-base shadow-lg shadow-blue-500/25 disabled:opacity-60 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             {submitting ? (
               <>

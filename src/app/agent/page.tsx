@@ -4,8 +4,6 @@ import {
   AlertTriangle,
   ShieldCheck,
   ShoppingBag,
-  Clock,
-  TrendingUp,
 } from "lucide-react";
 import {
   Card,
@@ -53,9 +51,9 @@ export default async function AgentDashboard() {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute right-4 top-4 bg-white/15 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
+      <div className="premium-dark-panel relative overflow-hidden rounded-lg p-6 text-white">
+        <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(20,184,166,0.24),transparent_42%),linear-gradient(35deg,transparent_55%,rgba(37,99,235,0.24))]" />
+        <div className="absolute right-4 top-4 rounded-lg border border-white/15 bg-white/[0.12] px-4 py-2 backdrop-blur-sm">
           <p className="text-[10px] text-white/60">授权区域</p>
           <p className="text-sm font-bold text-white">{agentRegion}</p>
         </div>
@@ -67,7 +65,7 @@ export default async function AgentDashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -80,7 +78,7 @@ export default async function AgentDashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -93,7 +91,7 @@ export default async function AgentDashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -106,7 +104,7 @@ export default async function AgentDashboard() {
             </div>
           </CardContent>
         </Card>
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -124,7 +122,7 @@ export default async function AgentDashboard() {
       {/* Station Summary & Recent Activity */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Per-Station Summary */}
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-slate-800 text-base">站长概况</CardTitle>
@@ -173,7 +171,7 @@ export default async function AgentDashboard() {
         </Card>
 
         {/* Recent Activity */}
-        <Card className="bg-white border-0 shadow-sm">
+        <Card className="border-white/[0.08] bg-white/[0.92] shadow-sm">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-slate-800 text-base">最近动态</CardTitle>

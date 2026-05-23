@@ -19,8 +19,11 @@ import {
   Flame,
   Edit,
   Trash2,
+  LinkIcon,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface HotProduct {
   id: string;
@@ -45,21 +48,59 @@ export default function HotProductsClient({ products }: HotProductsClientProps) 
 
   // Form state
   const [formTitle, setFormTitle] = useState("");
-  const [formImageUrl, setFormImageUrl] = useState("");
+  const [formImages, setFormImages] = useState<string[]>([]);
   const [formPrice, setFormPrice] = useState("");
   const [formPddPath, setFormPddPath] = useState("");
+  const [pddLink, setPddLink] = useState("");
+  const [parsingPdd, setParsingPdd] = useState(false);
 
   const resetForm = () => {
     setFormTitle("");
-    setFormImageUrl("");
+    setFormImages([]);
     setFormPrice("");
     setFormPddPath("");
+    setPddLink("");
+  };
+
+  const handleParsePdd = async () => {
+    if (!pddLink.trim()) {
+      toast.error("请输入拼多多链接");
+      return;
+    }
+    setParsingPdd(true);
+    try {
+      const res = await fetch("/api/pdd/parse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: pddLink.trim() }),
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        const { title, image, price } = data.data;
+        const filled: string[] = [];
+        if (title) { setFormTitle(title); filled.push("标题"); }
+        if (image) { setFormImages([image]); filled.push("图片"); }
+        if (price) { setFormPrice(price); filled.push("价格"); }
+        // 提取链接部分作为拼多多路径
+        const urlMatch = pddLink.match(/https?:\/\/[^\s<>]+/);
+        if (urlMatch) setFormPddPath(urlMatch[0]);
+        toast.success(filled.length > 0
+          ? `已填充: ${filled.join("、")}`
+          : "已识别链接，请手动填写商品信息");
+      } else {
+        toast.error(data.error || "解析失败，请手动填写");
+      }
+    } catch {
+      toast.error("解析失败，请手动填写");
+    } finally {
+      setParsingPdd(false);
+    }
   };
 
   const openEditDialog = (product: HotProduct) => {
     setSelectedProduct(product);
     setFormTitle(product.title);
-    setFormImageUrl(product.imageUrl);
+    setFormImages(product.imageUrl ? [product.imageUrl] : []);
     setFormPrice(String(product.price));
     setFormPddPath(product.pddPath);
     setShowEditDialog(true);
@@ -81,7 +122,7 @@ export default function HotProductsClient({ products }: HotProductsClientProps) 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: formTitle,
-          imageUrl: formImageUrl || `https://picsum.photos/seed/${Date.now()}/400/400`,
+          imageUrl: formImages[0] || `https://picsum.photos/seed/${Date.now()}/400/400`,
           price: parseFloat(formPrice),
           pddPath: formPddPath,
           sortOrder: products.length,
@@ -114,7 +155,7 @@ export default function HotProductsClient({ products }: HotProductsClientProps) 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: formTitle,
-          imageUrl: formImageUrl,
+          imageUrl: formImages[0] || "",
           price: parseFloat(formPrice),
           pddPath: formPddPath,
         }),
@@ -296,6 +337,36 @@ export default function HotProductsClient({ products }: HotProductsClientProps) 
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-3">
+              <p className="text-xs font-medium text-blue-700 mb-1">
+                <LinkIcon className="inline h-3 w-3 mr-1" />
+                粘贴拼多多分享内容自动填充
+              </p>
+              <p className="text-[11px] text-blue-500 mb-2">
+                在拼多多APP点分享→复制链接，粘贴完整内容即可自动识别商品名和价格
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="粘贴拼多多分享文本或链接..."
+                  value={pddLink}
+                  onChange={(e) => setPddLink(e.target.value)}
+                  className="bg-white border-blue-200 text-gray-900 placeholder:text-gray-400 text-sm"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="border-blue-300 text-blue-600 hover:bg-blue-50 whitespace-nowrap"
+                  onClick={handleParsePdd}
+                  disabled={parsingPdd || !pddLink.trim()}
+                >
+                  {parsingPdd ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "抓取"
+                  )}
+                </Button>
+              </div>
+            </div>
             <div>
               <p className="text-xs font-medium text-gray-600 mb-1.5">商品标题 *</p>
               <Input
@@ -306,13 +377,8 @@ export default function HotProductsClient({ products }: HotProductsClientProps) 
               />
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-600 mb-1.5">图片URL</p>
-              <Input
-                placeholder="https://... (留空使用随机图片)"
-                value={formImageUrl}
-                onChange={(e) => setFormImageUrl(e.target.value)}
-                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400"
-              />
+              <p className="text-xs font-medium text-gray-600 mb-1.5">商品图片（最多20张）</p>
+              <ImageUpload value={formImages} onChange={setFormImages} maxFiles={20} />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 mb-1.5">价格 *</p>
@@ -386,13 +452,8 @@ export default function HotProductsClient({ products }: HotProductsClientProps) 
               />
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-600 mb-1.5">图片URL</p>
-              <Input
-                placeholder="https://..."
-                value={formImageUrl}
-                onChange={(e) => setFormImageUrl(e.target.value)}
-                className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-400"
-              />
+              <p className="text-xs font-medium text-gray-600 mb-1.5">商品图片（最多20张）</p>
+              <ImageUpload value={formImages} onChange={setFormImages} maxFiles={20} />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-600 mb-1.5">价格 *</p>

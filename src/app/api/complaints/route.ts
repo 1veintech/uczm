@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/api-auth";
 
 // Check if a point (lat, lng) is inside a polygon (bounds)
 function isPointInPolygon(lat: number, lng: number, bounds: [number, number][]): boolean {
-  if (bounds.length < 3) return true; // No bounds set = allow all
+  if (bounds.length < 3) return true;
   let inside = false;
   for (let i = 0, j = bounds.length - 1; i < bounds.length; j = i++) {
     const [yi, xi] = bounds[i];
@@ -16,13 +17,16 @@ function isPointInPolygon(lat: number, lng: number, bounds: [number, number][]):
 }
 
 export async function GET(req: NextRequest) {
+  const { error } = await getAuthUser();
+  if (error) return error;
+
   try {
     const { searchParams } = new URL(req.url);
     const customerId = searchParams.get("customerId");
     const phone = searchParams.get("phone");
     const status = searchParams.get("status");
+    const take = searchParams.get("take");
 
-    // 按手机号或客户ID查找客户，确保数据隔离
     let customer = null;
     if (customerId) {
       customer = await prisma.customer.findUnique({ where: { id: customerId } });
@@ -44,6 +48,7 @@ export async function GET(req: NextRequest) {
         station: { select: { name: true } },
       },
       orderBy: { createdAt: "desc" },
+      ...(take ? { take: parseInt(take) } : {}),
     });
 
     return NextResponse.json({ complaints });
@@ -54,18 +59,17 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const { error } = await getAuthUser();
+  if (error) return error;
+
   try {
     const body = await req.json();
     const { problemType, description, orderNo, images, customerId, stationId, customerLat, customerLng } = body;
 
     if (!problemType || !description) {
-      return NextResponse.json(
-        { error: "请填写问题类型和描述" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "请填写问题类型和描述" }, { status: 400 });
     }
 
-    // Find customer - use provided ID or fall back to first
     const customer = customerId
       ? await prisma.customer.findUnique({ where: { id: customerId } })
       : await prisma.customer.findFirst();
@@ -74,7 +78,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "请先登录后再提交售后" }, { status: 400 });
     }
 
-    // Find station - use provided ID, customer's bound station, or first station
     let station;
     if (stationId) {
       station = await prisma.station.findUnique({
@@ -96,26 +99,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "未找到站点信息" }, { status: 400 });
     }
 
-    // Check station status
     if (station.status !== "APPROVED") {
       return NextResponse.json({ error: "该站点暂不接受售后反馈" }, { status: 400 });
     }
 
-    // Region validation - check if customer is within the agent's region
     if (station.agent && station.agent.regionBounds) {
       try {
         const bounds: [number, number][] = JSON.parse(station.agent.regionBounds);
-        if (bounds.length >= 3) {
-          // If customer location provided, check against polygon
-          if (customerLat && customerLng) {
-            if (!isPointInPolygon(customerLat, customerLng, bounds)) {
-              return NextResponse.json(
-                { error: `您所在的区域不属于「${station.agent.region}」服务范围，请联系对应区域的站点` },
-                { status: 400 }
-              );
-            }
+        if (bounds.length >= 3 && customerLat && customerLng) {
+          if (!isPointInPolygon(customerLat, customerLng, bounds)) {
+            return NextResponse.json(
+              { error: `您所在的区域不属于「${station.agent.region}」服务范围，请联系对应区域的站点` },
+              { status: 400 }
+            );
           }
-          // If no location provided but region has bounds, still allow (fallback)
         }
       } catch {
         // Invalid bounds JSON, skip region check

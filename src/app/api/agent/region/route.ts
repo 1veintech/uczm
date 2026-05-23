@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAgentOrAdmin } from "@/lib/api-auth";
 
 // GET - 获取代理的区域边界信息
 export async function GET(req: NextRequest) {
@@ -62,6 +63,9 @@ export async function GET(req: NextRequest) {
 // POST - 保存代理的区域边界
 export async function POST(req: NextRequest) {
   try {
+    const { user, error } = await requireAgentOrAdmin();
+    if (error) return error;
+
     const { agentId, regionBounds, centerLat, centerLng, zoomLevel } = await req.json();
 
     if (!agentId) {

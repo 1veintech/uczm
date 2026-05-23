@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/api-auth";
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { user, error } = await getAuthUser();
+    if (error) return error;
+
     const { id } = await params;
     const body = await request.json();
     const { title, imageUrl, price, pddPath, status } = body;
@@ -34,6 +38,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { user, error } = await getAuthUser();
+    if (error) return error;
+
     const { id } = await params;
 
     await prisma.hotProduct.delete({ where: { id } });

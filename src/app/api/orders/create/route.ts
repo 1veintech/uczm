@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAuthUser } from "@/lib/api-auth";
 
 export async function POST(request: Request) {
   try {
+    const { user, error } = await getAuthUser();
+    if (error) return error;
+
     const body = await request.json();
     const { items, receiverName, receiverPhone, receiverAddress, stationId } = body;
 
@@ -10,7 +14,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "订单无商品" }, { status: 400 });
     }
 
-    const customer = await prisma.customer.findFirst();
+    // 根据收货手机号查找或创建客户
+    let customer = null;
+    if (receiverPhone) {
+      customer = await prisma.customer.findFirst({
+        where: { phone: receiverPhone },
+      });
+    }
+    if (!customer) {
+      customer = await prisma.customer.findFirst(); // fallback
+    }
     const station = stationId
       ? await prisma.station.findUnique({ where: { id: stationId } })
       : await prisma.station.findFirst({ where: { status: "APPROVED" } });
