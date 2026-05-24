@@ -96,8 +96,8 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      // 验证验证码
-      const res = await fetch("/api/sms/verify", {
+      // 调用 customers/login API — 同时验证验证码并创建/查找客户记录
+      const res = await fetch("/api/customers/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone, code }),
@@ -106,7 +106,7 @@ export default function LoginPage() {
 
       if (data.success) {
         const userInfo = {
-          nickname: `用户${phone.slice(-4)}`,
+          nickname: data.customer?.nickname || `用户${phone.slice(-4)}`,
           phone,
         };
         localStorage.setItem("c_user", JSON.stringify(userInfo));

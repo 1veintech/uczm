@@ -3,6 +3,17 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+function getCartStorageKey(): string {
+  try {
+    const saved = localStorage.getItem("c_user");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed.phone) return `ddcm-cart-${parsed.phone}`;
+    }
+  } catch {}
+  return "ddcm-cart-guest";
+}
+
 export interface CartItemData {
   id: string;
   productId: string;
@@ -64,6 +75,6 @@ export const useCart = create<CartStore>()(
         return get().items.reduce((sum, item) => sum + item.quantity, 0);
       },
     }),
-    { name: "ddcm-cart" }
+    { name: getCartStorageKey() }
   )
 );

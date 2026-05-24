@@ -1,20 +1,27 @@
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import RegionClient from "./region-client";
 
 export default async function AgentRegionPage() {
-  const agent = await prisma.agent.findFirst({
-    where: { user: { email: "agent@ddcm.com" } },
-    include: {
-      stations: {
-        select: {
-          id: true,
-          name: true,
-          address: true,
-          status: true,
+  const session = await getServerSession(authOptions);
+  const userId = (session?.user as any)?.id;
+
+  const agent = userId
+    ? await prisma.agent.findFirst({
+        where: { userId },
+        include: {
+          stations: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+              status: true,
+            },
+          },
         },
-      },
-    },
-  });
+      })
+    : null;
 
   if (!agent) {
     return (

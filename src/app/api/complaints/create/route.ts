@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
     const customer = customerId
       ? await prisma.customer.findUnique({ where: { id: customerId } })
-      : await prisma.customer.findFirst();
+      : null;
 
     const station = stationId
       ? await prisma.station.findUnique({ where: { id: stationId } })

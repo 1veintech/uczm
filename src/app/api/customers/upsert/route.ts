@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyCode } from "@/lib/sms";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { phone, nickname } = body;
+    const { phone, nickname, code } = body;
 
-    if (!phone) {
-      return NextResponse.json({ error: "请提供手机号" }, { status: 400 });
+    if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+      return NextResponse.json({ error: "请提供正确的手机号" }, { status: 400 });
+    }
+
+    if (!code || !verifyCode(phone, code)) {
+      return NextResponse.json({ error: "验证码错误或已过期" }, { status: 401 });
     }
 
     // 按手机号查找已有客户

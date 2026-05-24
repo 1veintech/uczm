@@ -26,7 +26,10 @@ export default async function StationDashboard() {
   if (!station) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-zinc-400">未找到站点信息</p>
+        <div className="text-center">
+          <p className="text-zinc-400 text-lg mb-2">未找到站点信息</p>
+          <p className="text-zinc-500 text-sm">当前登录账号未关联站点，请联系管理员分配</p>
+        </div>
       </div>
     );
   }

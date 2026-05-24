@@ -61,6 +61,9 @@ export default function RegionMap({
       attributionControl: true,
     }).setView(center, zoom);
 
+    // Ensure proper rendering
+    setTimeout(() => map.invalidateSize(), 100);
+
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap",
     }).addTo(map);
@@ -224,7 +227,7 @@ export default function RegionMap({
       )}
 
       {/* Map container */}
-      <div ref={mapRef} style={{ height, zIndex: 1, position: "relative" }} />
+      <div ref={mapRef} style={{ height, width: "100%", zIndex: 1, position: "relative" }} />
 
       {/* Info bar */}
       {points.length > 0 && (

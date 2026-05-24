@@ -53,13 +53,22 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const { error } = await getAuthUser();
+  const { user, error } = await getAuthUser();
   if (error) return error;
 
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "缺少ID" }, { status: 400 });
+
+    const hotProduct = await prisma.hotProduct.findUnique({ where: { id }, select: { stationId: true } });
+    if (!hotProduct) return NextResponse.json({ error: "爆品不存在" }, { status: 404 });
+    if (user!.role === "STATION_MASTER") {
+      const station = await prisma.station.findUnique({ where: { userId: user!.id } });
+      if (!station || station.id !== hotProduct.stationId) {
+        return NextResponse.json({ error: "无权删除该爆品" }, { status: 403 });
+      }
+    }
 
     await prisma.hotProduct.delete({ where: { id } });
     return NextResponse.json({ success: true });
@@ -69,7 +78,7 @@ export async function DELETE(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const { error } = await getAuthUser();
+  const { user, error } = await getAuthUser();
   if (error) return error;
 
   try {
@@ -77,6 +86,15 @@ export async function PATCH(request: Request) {
     const { id, title, imageUrl, price, pddPath, status, sortOrder } = body;
 
     if (!id) return NextResponse.json({ error: "缺少ID" }, { status: 400 });
+
+    const hotProduct = await prisma.hotProduct.findUnique({ where: { id }, select: { stationId: true } });
+    if (!hotProduct) return NextResponse.json({ error: "爆品不存在" }, { status: 404 });
+    if (user!.role === "STATION_MASTER") {
+      const station = await prisma.station.findUnique({ where: { userId: user!.id } });
+      if (!station || station.id !== hotProduct.stationId) {
+        return NextResponse.json({ error: "无权修改该爆品" }, { status: 403 });
+      }
+    }
 
     const data: Record<string, unknown> = {};
     if (title !== undefined) data.title = title;

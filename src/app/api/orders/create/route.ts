@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       });
     }
     if (!customer) {
-      customer = await prisma.customer.findFirst(); // fallback
+      return NextResponse.json({ error: "未找到客户信息" }, { status: 400 });
     }
     const station = stationId
       ? await prisma.station.findUnique({ where: { id: stationId } })
@@ -33,10 +33,40 @@ export async function POST(request: Request) {
     }
 
     const orderNo = `ORD${Date.now()}`;
-    const totalAmount = items.reduce(
-      (sum: number, item: any) => sum + item.price * item.quantity,
-      0
-    );
+    // 服务端校验价格和库存
+    const productIds = items.map((item: any) => item.productId);
+    const dbProducts = await prisma.product.findMany({
+      where: { id: { in: productIds }, status: "ACTIVE" },
+    });
+    const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+
+    const createOrderItems: any[] = [];
+    let totalAmount = 0;
+    for (const item of items) {
+      const dbProduct = productMap.get(item.productId);
+      if (!dbProduct) {
+        return NextResponse.json({ error: `商品 ${item.productId} 不存在或已下架` }, { status: 400 });
+      }
+      if (dbProduct.stock < item.quantity) {
+        return NextResponse.json({ error: `商品「${dbProduct.name}」库存不足` }, { status: 400 });
+      }
+      const subtotal = dbProduct.price * item.quantity;
+      totalAmount += subtotal;
+      createOrderItems.push({
+        productId: dbProduct.id,
+        productName: dbProduct.name,
+        productImage: item.image || "",
+        price: dbProduct.price,
+        quantity: item.quantity,
+        subtotal,
+      });
+    }
+    for (const item of createOrderItems) {
+      await prisma.product.update({
+        where: { id: item.productId },
+        data: { stock: { decrement: item.quantity }, salesCount: { increment: item.quantity } },
+      });
+    }
 
     const order = await prisma.order.create({
       data: {
@@ -50,14 +80,7 @@ export async function POST(request: Request) {
         receiverAddress: receiverAddress || "默认地址",
         payTime: new Date(),
         items: {
-          create: items.map((item: any) => ({
-            productId: item.productId,
-            productName: item.name,
-            productImage: item.image || "",
-            price: item.price,
-            quantity: item.quantity,
-            subtotal: item.price * item.quantity,
-          })),
+          create: createOrderItems,
         },
       },
       include: { items: true },

@@ -75,11 +75,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "未找到站点信息" }, { status: 400 });
     }
 
-    const totalAmount = items.reduce(
-      (sum: number, item: { price: number; quantity: number }) =>
-        sum + item.price * item.quantity,
-      0
-    );
+    // 服务端校验价格和库存（不信任客户端数据）
+    const productIds = items.map((item: { productId: string }) => item.productId);
+    const dbProducts = await prisma.product.findMany({
+      where: { id: { in: productIds }, stationId: station.id, status: "ACTIVE" },
+    });
+    const productMap = new Map(dbProducts.map((p) => [p.id, p]));
+
+    const orderItems: { productId: string; productName: string; productImage: string; price: number; quantity: number; subtotal: number }[] = [];
+    let totalAmount = 0;
+
+    for (const item of items) {
+      const dbProduct = productMap.get(item.productId);
+      if (!dbProduct) {
+        return NextResponse.json({ error: `商品 ${item.productId} 不存在或已下架` }, { status: 400 });
+      }
+      if (dbProduct.stock < item.quantity) {
+        return NextResponse.json({ error: `商品「${dbProduct.name}」库存不足（剩余 ${dbProduct.stock}）` }, { status: 400 });
+      }
+      const subtotal = dbProduct.price * item.quantity;
+      totalAmount += subtotal;
+      orderItems.push({
+        productId: dbProduct.id,
+        productName: dbProduct.name,
+        productImage: "",
+        price: dbProduct.price,
+        quantity: item.quantity,
+        subtotal,
+      });
+    }
+
+    // 扣减库存
+    for (const item of orderItems) {
+      await prisma.product.update({
+        where: { id: item.productId },
+        data: { stock: { decrement: item.quantity }, salesCount: { increment: item.quantity } },
+      });
+    }
 
     const orderNo = `DD${Date.now().toString().slice(-10)}`;
 
@@ -95,22 +127,7 @@ export async function POST(req: NextRequest) {
         receiverAddress,
         payTime: new Date(),
         items: {
-          create: items.map(
-            (item: {
-              productId: string;
-              name: string;
-              image: string;
-              price: number;
-              quantity: number;
-            }) => ({
-              productId: item.productId,
-              productName: item.name,
-              productImage: item.image,
-              price: item.price,
-              quantity: item.quantity,
-              subtotal: item.price * item.quantity,
-            })
-          ),
+          create: orderItems,
         },
       },
     });

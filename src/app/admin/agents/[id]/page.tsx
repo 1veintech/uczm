@@ -33,6 +33,7 @@ import {
   PLAN_TYPE_LABELS,
   STATUS_COLORS,
 } from "@/lib/constants";
+import AgentMap from "./agent-map";
 
 export const dynamic = "force-dynamic";
 
@@ -160,6 +161,23 @@ export default async function AgentDetailPage({
             </TableBody>
           </Table>
           {agent.stations.length === 0 && <div className="py-12 text-center text-zinc-500">该代理暂无下辖站长</div>}
+        </CardContent>
+      </Card>
+
+      {/* Region Map */}
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2"><MapPin className="h-5 w-5 text-[#FF6B35]" />区域地图</CardTitle>
+          <CardDescription>{agent.region} 管辖范围</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AgentMap
+            centerLat={agent.centerLat ?? 39.9}
+            centerLng={agent.centerLng ?? 116.4}
+            zoomLevel={agent.zoomLevel ?? 12}
+            regionBounds={(() => { try { return agent.regionBounds ? JSON.parse(agent.regionBounds) : []; } catch { return []; } })()}
+            regionName={agent.region}
+          />
         </CardContent>
       </Card>
     </div>

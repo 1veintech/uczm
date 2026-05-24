@@ -24,26 +24,42 @@ function MobileLoginContent() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  const sendCode = () => {
+  const [sending, setSending] = useState(false);
+
+  const sendCode = async () => {
     if (phone.length !== 11) {
       setMessage("请输入正确的手机号");
       return;
     }
     setMessage("");
-    setCodeSent(true);
-    setCountdown(60);
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          return 0;
-        }
-        return prev - 1;
+    setSending(true);
+    try {
+      const res = await fetch("/api/sms/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone }),
       });
-    }, 1000);
+      const data = await res.json();
+      if (data.success) {
+        setCodeSent(true);
+        setCountdown(60);
+        const timer = setInterval(() => {
+          setCountdown((prev) => {
+            if (prev <= 1) { clearInterval(timer); return 0; }
+            return prev - 1;
+          });
+        }, 1000);
+      } else {
+        setMessage(data.message || "发送失败");
+      }
+    } catch {
+      setMessage("网络错误，请重试");
+    } finally {
+      setSending(false);
+    }
   };
 
-  const handleLogin = (event: React.FormEvent) => {
+  const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     if (phone.length !== 11) {
       setMessage("请输入正确的手机号");
@@ -55,14 +71,30 @@ function MobileLoginContent() {
     }
 
     setLoading(true);
-    localStorage.setItem(
-      "c_user",
-      JSON.stringify({
-        nickname: `用户${phone.slice(-4)}`,
-        phone,
-      })
-    );
-    router.replace(redirectTo);
+    try {
+      const res = await fetch("/api/customers/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, code }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem(
+          "c_user",
+          JSON.stringify({
+            nickname: data.customer?.nickname || `用户${phone.slice(-4)}`,
+            phone,
+          })
+        );
+        router.replace(redirectTo);
+      } else {
+        setMessage(data.message || "验证码错误或已过期");
+        setLoading(false);
+      }
+    } catch {
+      setMessage("网络错误，请重试");
+      setLoading(false);
+    }
   };
 
   return (

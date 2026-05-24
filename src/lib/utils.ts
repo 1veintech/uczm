@@ -17,7 +17,7 @@ export const passwordSchema = z
 export function validatePassword(password: string): { valid: boolean; message?: string } {
   const result = passwordSchema.safeParse(password);
   if (!result.success) {
-    return { valid: false, message: result.error.errors[0]?.message || "密码不符合要求" };
+    return { valid: false, message: result.error.issues[0]?.message || "密码不符合要求" };
   }
   return { valid: true };
 }

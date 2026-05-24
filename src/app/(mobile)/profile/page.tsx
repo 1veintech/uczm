@@ -49,6 +49,7 @@ export default function ProfilePage() {
   const [showAbout, setShowAbout] = useState(false);
   const [user, setUser] = useState<UserInfo | null>(null);
   const [orderCounts, setOrderCounts] = useState<Record<string, number>>({});
+  const [serviceRange, setServiceRange] = useState("未登录");
   const itemCount = useCart((s) => s.getItemCount());
 
   useEffect(() => {
@@ -67,8 +68,13 @@ export default function ProfilePage() {
         .then((r) => r.json())
         .then((d) => { if (d.counts) setOrderCounts(d.counts); })
         .catch(() => {});
+      fetch(`/api/customers/service-range?phone=${user.phone}`)
+        .then((r) => r.json())
+        .then((d) => { if (d.serviceRange) setServiceRange(d.serviceRange); })
+        .catch(() => {});
     } else {
       setOrderCounts({});
+      setServiceRange("未登录");
     }
   }, [user]);
 
@@ -117,7 +123,7 @@ export default function ProfilePage() {
                 <ShieldCheck size={12} />
                 服务范围
               </div>
-              <p className="mt-1 text-sm font-semibold">站点校验中</p>
+              <p className="mt-1 text-sm font-semibold">{serviceRange}</p>
             </div>
           </div>
         </div>
@@ -253,7 +259,7 @@ export default function ProfilePage() {
           <div className="w-full max-w-sm rounded-lg bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-slate-900">优采智管</h2>
             <p className="mt-2 text-sm leading-6 text-slate-500">
-              多多买菜站长私域经营系统，覆盖售后报损、站长商场、招聘报名和个人服务中心。
+              站长私域经营系统，覆盖售后报损、站长商场、招聘报名和个人服务中心。
             </p>
             <button onClick={() => setShowAbout(false)} className="mt-5 w-full rounded-lg bg-slate-950 py-3 text-sm font-semibold text-white">
               知道了

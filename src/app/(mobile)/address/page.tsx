@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, MapPin, Plus, Trash2, Check } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 interface Address {
   id: string;
@@ -15,10 +16,19 @@ interface Address {
   isDefault: boolean;
 }
 
+function getUserPhone(): string | null {
+  try {
+    const saved = localStorage.getItem("c_user");
+    if (saved) { const parsed = JSON.parse(saved); return parsed.phone || null; }
+  } catch {}
+  return null;
+}
+
 export default function AddressPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [userPhone, setUserPhone] = useState<string | null>(null);
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -30,17 +40,17 @@ export default function AddressPage() {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem("c_addresses");
-    if (saved) {
-      try {
-        setAddresses(JSON.parse(saved));
-      } catch {}
+    const phone = getUserPhone();
+    setUserPhone(phone);
+    if (phone) {
+      const saved = localStorage.getItem(`c_addresses_${phone}`);
+      if (saved) { try { setAddresses(JSON.parse(saved)); } catch {} }
     }
   }, []);
 
   const saveAddresses = (addrs: Address[]) => {
     setAddresses(addrs);
-    localStorage.setItem("c_addresses", JSON.stringify(addrs));
+    if (userPhone) localStorage.setItem(`c_addresses_${userPhone}`, JSON.stringify(addrs));
   };
 
   const resetForm = () => {
@@ -112,6 +122,30 @@ export default function AddressPage() {
     setEditingId(addr.id);
     setShowForm(true);
   };
+
+  if (!userPhone) {
+    return (
+      <div className="min-h-screen mini-page">
+        <div className="mini-topbar">
+          <div className="flex items-center gap-3 px-4 py-3">
+            <button onClick={() => history.back()} className="w-8 h-8 flex items-center justify-center">
+              <ArrowLeft size={20} className="text-gray-600" />
+            </button>
+            <h1 className="text-base font-bold text-gray-800 flex-1">收货地址</h1>
+          </div>
+        </div>
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+            <MapPin size={28} className="text-gray-300" />
+          </div>
+          <p className="text-sm text-gray-400 mb-4">请先登录后管理收货地址</p>
+          <Link href="/mobile-login?redirect=/address" className="px-6 py-2.5 rounded-lg mini-primary text-sm font-medium active:scale-95 transition-transform">
+            去登录
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen mini-page">

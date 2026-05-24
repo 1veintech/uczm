@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import {
   COMPLAINT_STATUS_LABELS,
   STATUS_COLORS,
@@ -151,7 +152,7 @@ export default async function AdminDashboard() {
         <CardContent>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {agents.map((a) => (
-              <div key={a.id} className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 hover:bg-slate-100 transition-colors">
+              <Link key={a.id} href={`/admin/agents/${a.id}`} className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 hover:bg-slate-100 transition-colors">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
                   <span className="text-white text-sm font-bold">{a.region[0]}</span>
                 </div>
@@ -162,7 +163,7 @@ export default async function AdminDashboard() {
                 <Badge className={a.status === "ACTIVE" ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}>
                   {a.status === "ACTIVE" ? "正常" : "暂停"}
                 </Badge>
-              </div>
+              </Link>
             ))}
             {agents.length === 0 && <p className="text-center text-slate-400 py-6 text-sm col-span-full">暂无代理数据</p>}
           </div>

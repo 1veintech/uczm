@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
 
     const customer = customerId
       ? await prisma.customer.findUnique({ where: { id: customerId } })
-      : await prisma.customer.findFirst();
+      : null;
 
     if (!customer) {
       return NextResponse.json({ error: "请先登录后再提交售后" }, { status: 400 });

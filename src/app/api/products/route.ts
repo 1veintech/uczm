@@ -10,8 +10,16 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, images, description, price, originalPrice, stock } = body;
 
-    if (!name || !price) {
-      return NextResponse.json({ error: "请填写必填字段" }, { status: 400 });
+    const parsedPrice = parseFloat(price);
+    if (!name || !parsedPrice || parsedPrice <= 0) {
+      return NextResponse.json({ error: "请填写有效的商品名称和价格" }, { status: 400 });
+    }
+    if (name.length > 200) {
+      return NextResponse.json({ error: "商品名称过长" }, { status: 400 });
+    }
+    const parsedStock = parseInt(stock);
+    if (isNaN(parsedStock) || parsedStock < 0 || parsedStock > 999999) {
+      return NextResponse.json({ error: "库存数量无效" }, { status: 400 });
     }
 
     // 根据认证用户获取站点
@@ -26,12 +34,12 @@ export async function POST(request: Request) {
     const product = await prisma.product.create({
       data: {
         stationId: station.id,
-        name,
+        name: name.trim().slice(0, 200),
         images: images || JSON.stringify([`https://picsum.photos/seed/${Date.now()}/400/400`]),
-        description: description || null,
-        price: parseFloat(price),
-        originalPrice: originalPrice ? parseFloat(originalPrice) : null,
-        stock: parseInt(stock) || 0,
+        description: (description || "").slice(0, 2000),
+        price: Math.round(parsedPrice * 100) / 100,
+        originalPrice: originalPrice ? Math.round(parseFloat(originalPrice) * 100) / 100 : null,
+        stock: parsedStock,
         status: "ACTIVE",
       },
     });
