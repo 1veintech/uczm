@@ -149,6 +149,8 @@ export function HomeLoginPanel() {
             <Phone className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             <input
               type="tel"
+              name="phone"
+              autoComplete="tel"
               maxLength={11}
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
@@ -193,6 +195,8 @@ export function HomeLoginPanel() {
               <KeyRound className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
               <input
                 type="password"
+                name="password"
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="请输入密码"

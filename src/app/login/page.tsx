@@ -82,6 +82,8 @@ export default function LoginPage() {
               <label className="block text-xs font-medium text-slate-400 mb-2">账号</label>
               <input
                 type="text"
+                name="email"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="请输入手机号或邮箱"
@@ -94,6 +96,8 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
+                  name="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="请输入密码"
