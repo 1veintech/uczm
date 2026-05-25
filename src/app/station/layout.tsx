@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   MessageSquareWarning,
@@ -79,6 +80,10 @@ export default function StationLayout({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pageTitle = getPageTitle(pathname);
+  const { data: session } = useSession();
+
+  const userName = session?.user?.name || "站长";
+  const userInitial = userName.charAt(0);
 
   return (
     <div className="flex h-screen bg-[#F6F8FC] text-slate-900">
@@ -168,20 +173,16 @@ export default function StationLayout({
         <div className="border-t border-white/10 p-4">
           <div className="flex items-center gap-3">
             <Avatar size="sm">
-              <AvatarImage src="https://picsum.photos/seed/zhang/80/80" />
               <AvatarFallback className="bg-blue-500/20 text-blue-400 text-xs">
-                张
+                {userInitial}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">张站长</p>
-              <p className="text-[11px] text-slate-400 truncate">朝阳区幸福里站</p>
+              <p className="text-sm font-medium text-white truncate">{userName}</p>
+              <p className="text-[11px] text-slate-400 truncate">站长</p>
             </div>
             <button
-              onClick={() => {
-                localStorage.clear();
-                window.location.href = "/home";
-              }}
+              onClick={() => signOut({ callbackUrl: "/home" })}
               className="rounded-md p-1.5 text-slate-400 hover:bg-white/10 hover:text-red-400 transition-colors"
               title="退出登录"
             >
@@ -225,14 +226,13 @@ export default function StationLayout({
             </button>
             <div className="hidden sm:flex items-center gap-3 ml-2 pl-3 border-l border-gray-200">
               <Avatar size="sm">
-                <AvatarImage src="https://picsum.photos/seed/zhang/80/80" />
                 <AvatarFallback className="bg-blue-500/10 text-blue-600 text-xs">
-                  张
+                  {userInitial}
                 </AvatarFallback>
               </Avatar>
               <div className="text-right">
-                <p className="text-sm font-medium text-gray-900">张站长</p>
-                <p className="text-[11px] text-gray-400">朝阳区幸福里站</p>
+                <p className="text-sm font-medium text-gray-900">{userName}</p>
+                <p className="text-[11px] text-gray-400">站长</p>
               </div>
             </div>
           </div>
