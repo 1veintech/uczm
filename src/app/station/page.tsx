@@ -4,13 +4,18 @@ import { prisma } from "@/lib/prisma";
 import { COMPLAINT_STATUS_LABELS, PROBLEM_TYPE_LABELS } from "@/lib/constants";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
+import { headers } from "next/headers";
 import DashboardClient from "./dashboard-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function StationDashboard() {
   // 从登录 session 获取当前用户
-  const session = await getServerSession(authOptions);
+  const headersList = await headers();
+  const session = await getServerSession({
+    ...authOptions,
+    headers: headersList,
+  });
   if (!session?.user) {
     return (
       <div className="flex items-center justify-center h-full">
