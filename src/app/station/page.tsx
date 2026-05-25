@@ -18,7 +18,9 @@ export default function StationDashboard() {
       return;
     }
 
-    fetch("/api/station-data")
+    fetch("/api/station-data", {
+      credentials: "include",
+    })
       .then((res) => {
         if (!res.ok) {
           throw new Error("Failed to fetch data");
