@@ -6,6 +6,8 @@ import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 import DashboardClient from "./dashboard-client";
 
+export const dynamic = "force-dynamic";
+
 export default async function StationDashboard() {
   // 从登录 session 获取当前用户
   const session = await getServerSession(authOptions);
