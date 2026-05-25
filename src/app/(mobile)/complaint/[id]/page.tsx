@@ -18,10 +18,10 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: str
 };
 
 const RESOLVE_TYPE_LABELS: Record<string, string> = {
-  refund: "退款",
-  replace: "补货",
-  coupon: "优惠券/抵扣",
-  other: "其他方式",
+  "私下补款": "私下补款",
+  "补货": "补货",
+  "下次抵扣": "下次抵扣",
+  "其他": "其他",
 };
 
 export default async function ComplaintDetailPage({

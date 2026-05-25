@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import {
   Users,
   AlertTriangle,
@@ -23,8 +25,17 @@ import {
 export const dynamic = "force-dynamic";
 
 export default async function AgentDashboard() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || (session.user.role !== "COUNTY_AGENT" && session.user.role !== "SUPER_ADMIN")) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-zinc-400">无权访问</p>
+      </div>
+    );
+  }
+
   const agent = await prisma.agent.findFirst({
-    where: { user: { email: "agent@ddcm.com" } },
+    where: { userId: session.user.id },
     include: {
       stations: {
         include: {
@@ -36,13 +47,21 @@ export default async function AgentDashboard() {
     },
   });
 
-  const stationCount = agent?.stations.length ?? 0;
-  const agentRegion = agent?.region ?? "未设置";
-  const allComplaints = agent?.stations.flatMap((s) => s.complaints) ?? [];
+  if (!agent) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-zinc-400">未找到代理信息</p>
+      </div>
+    );
+  }
+
+  const stationCount = agent.stations.length;
+  const agentRegion = agent.region ?? "未设置";
+  const allComplaints = agent.stations.flatMap((s) => s.complaints);
   const totalComplaints = allComplaints.length;
   const resolvedCount = allComplaints.filter((c) => c.status === "RESOLVED").length;
   const interceptRate = totalComplaints > 0 ? ((resolvedCount / totalComplaints) * 100).toFixed(1) : "0.0";
-  const totalOrders = agent?.stations.reduce((sum, s) => sum + s.orders.length, 0) ?? 0;
+  const totalOrders = agent.stations.reduce((sum, s) => sum + s.orders.length, 0);
 
   const recentComplaints = allComplaints
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -58,7 +77,7 @@ export default async function AgentDashboard() {
           <p className="text-sm font-bold text-white">{agentRegion}</p>
         </div>
         <div className="relative">
-          <h1 className="text-2xl font-bold">欢迎回来，{agent?.name || "代理"}</h1>
+          <h1 className="text-2xl font-bold">欢迎回来，{agent.name || "代理"}</h1>
           <p className="text-blue-100 mt-1 text-sm">辖区：{agentRegion} · {stationCount}个站点 · 管理好您的辖区</p>
         </div>
       </div>
@@ -132,7 +151,7 @@ export default async function AgentDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2.5">
-              {agent?.stations.map((station) => (
+              {agent.stations.map((station) => (
                 <div
                   key={station.id}
                   className="flex items-center justify-between rounded-xl bg-slate-50 p-3 hover:bg-slate-100 transition-colors"
@@ -163,7 +182,7 @@ export default async function AgentDashboard() {
                   </div>
                 </div>
               ))}
-              {(!agent?.stations || agent.stations.length === 0) && (
+              {agent.stations.length === 0 && (
                 <p className="text-center text-slate-400 py-8 text-sm">暂无站长数据</p>
               )}
             </div>
@@ -182,7 +201,7 @@ export default async function AgentDashboard() {
           <CardContent>
             <div className="space-y-2.5">
               {recentComplaints.map((complaint) => {
-                const station = agent?.stations.find((s) => s.id === complaint.stationId);
+                const station = agent.stations.find((s) => s.id === complaint.stationId);
                 return (
                   <div
                     key={complaint.id}

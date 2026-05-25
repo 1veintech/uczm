@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Plus, Search, ShoppingCart, SlidersHorizontal, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useCart } from "@/hooks/use-cart";
+import { useCart, useCartItemCount, useCartTotal } from "@/hooks/use-cart";
 
 interface ProductItem {
   id: string;
@@ -28,8 +28,8 @@ export function MallClient({ products }: { products: ProductItem[] }) {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("all");
   const addItem = useCart((s) => s.addItem);
-  const total = useCart((s) => s.getTotal());
-  const itemCount = useCart((s) => s.getItemCount());
+  const total = useCartTotal();
+  const itemCount = useCartItemCount();
 
   const filtered = search.trim()
     ? products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))

@@ -73,8 +73,14 @@ export const authOptions: NextAuthOptions = {
           throw new Error("登录尝试过于频繁，请15分钟后再试");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+        // 支持邮箱或手机号登录
+        const account = credentials.email;
+        const isPhone = /^1[3-9]\d{9}$/.test(account);
+
+        const user = await prisma.user.findFirst({
+          where: isPhone
+            ? { phone: account }
+            : { email: account },
           include: {
             station: true,
             agent: true,

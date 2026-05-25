@@ -11,8 +11,10 @@ setInterval(() => {
   }
 }, 60000);
 
+import crypto from "crypto";
+
 export function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return crypto.randomInt(100000, 999999).toString();
 }
 
 export function saveCode(phone: string, code: string) {

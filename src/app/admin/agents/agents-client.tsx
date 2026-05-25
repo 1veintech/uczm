@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import {
   Search,
   Plus,
@@ -9,6 +10,7 @@ import {
   Power,
   Filter,
   UserCheck,
+  RotateCcw,
 } from "lucide-react";
 import {
   Card,
@@ -46,6 +48,7 @@ import { STATUS_COLORS } from "@/lib/constants";
 
 interface AgentData {
   id: string;
+  userId: string;
   name: string;
   phone: string;
   region: string;
@@ -70,13 +73,33 @@ export function AdminAgentsClient({ agents }: { agents: AgentData[] }) {
   });
 
   const handleCreate = async () => {
-    await fetch("/api/admin/agents", {
+    const res = await fetch("/api/admin/agents", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newAgent),
     });
-    setCreateOpen(false);
-    window.location.reload();
+    const data = await res.json();
+    if (res.ok) {
+      toast.success("创建成功，初始密码为 123456");
+      setCreateOpen(false);
+      window.location.reload();
+    } else {
+      toast.error(data.error || "创建失败");
+    }
+  };
+
+  const handleResetPassword = async (agentId: string) => {
+    const res = await fetch("/api/admin/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: agentId }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      toast.success("密码已重置为 123456");
+    } else {
+      toast.error(data.error || "重置失败");
+    }
   };
 
   return (
@@ -202,6 +225,9 @@ export function AdminAgentsClient({ agents }: { agents: AgentData[] }) {
                       <Link href={`/admin/agents/${agent.id}`}>
                         <Button variant="ghost" size="icon-xs" className="text-zinc-400 hover:text-zinc-200"><Eye className="h-4 w-4" /></Button>
                       </Link>
+                      <Button variant="ghost" size="icon-xs" className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10" title="重置密码" onClick={() => handleResetPassword(agent.userId)}>
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
                       <Button variant="ghost" size="icon-xs" className={agent.status === "ACTIVE" ? "text-red-400 hover:text-red-300 hover:bg-red-500/10" : "text-green-400 hover:text-green-300 hover:bg-green-500/10"}>
                         <Power className="h-4 w-4" />
                       </Button>

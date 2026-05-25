@@ -18,6 +18,7 @@ import {
   ChevronRight,
   LogOut,
   ShoppingCart,
+  Settings,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ const navSections: NavSection[] = [
     items: [
       { title: "收入统计", href: "/station/income", icon: DollarSign },
       { title: "我的二维码", href: "/station/qr-code", icon: QrCode },
+      { title: "个人设置", href: "/station/settings", icon: Settings },
     ],
   },
 ];

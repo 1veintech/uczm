@@ -21,9 +21,7 @@ async function main() {
   await prisma.agent.deleteMany();
   await prisma.user.deleteMany();
 
-  const adminPassword = await bcrypt.hash("admin123", 10);
-  const agentPassword = await bcrypt.hash("agent123", 10);
-  const stationPassword = await bcrypt.hash("station123", 10);
+  const defaultPassword = await bcrypt.hash("123456", 10);
 
   // Create Super Admin
   const admin = await prisma.user.create({
@@ -31,7 +29,7 @@ async function main() {
       name: "系统管理员",
       email: "admin@ddcm.com",
       phone: "13800000000",
-      password: adminPassword,
+      password: defaultPassword,
       role: "SUPER_ADMIN",
       avatarUrl: "https://picsum.photos/seed/admin/200/200",
     },
@@ -43,7 +41,7 @@ async function main() {
       name: "王代理",
       email: "agent@ddcm.com",
       phone: "13800000001",
-      password: agentPassword,
+      password: defaultPassword,
       role: "COUNTY_AGENT",
       avatarUrl: "https://picsum.photos/seed/agent/200/200",
     },
@@ -66,7 +64,7 @@ async function main() {
       name: "张站长",
       email: "zhang@ddcm.com",
       phone: "13800000002",
-      password: stationPassword,
+      password: defaultPassword,
       role: "STATION_MASTER",
       avatarUrl: "https://picsum.photos/seed/zhang/200/200",
     },
@@ -91,7 +89,7 @@ async function main() {
       name: "李站长",
       email: "li@ddcm.com",
       phone: "13800000003",
-      password: stationPassword,
+      password: defaultPassword,
       role: "STATION_MASTER",
       avatarUrl: "https://picsum.photos/seed/li/200/200",
     },
@@ -116,6 +114,7 @@ async function main() {
       data: {
         openid: "wx_customer_001",
         phone: "13900001111",
+        password: defaultPassword,
         nickname: "小王",
         avatarUrl: "https://picsum.photos/seed/c1/100/100",
         stationId: station1.id,
@@ -125,6 +124,7 @@ async function main() {
       data: {
         openid: "wx_customer_002",
         phone: "13900002222",
+        password: defaultPassword,
         nickname: "小李",
         avatarUrl: "https://picsum.photos/seed/c2/100/100",
         stationId: station1.id,
@@ -134,6 +134,7 @@ async function main() {
       data: {
         openid: "wx_customer_003",
         phone: "13900003333",
+        password: defaultPassword,
         nickname: "小张",
         avatarUrl: "https://picsum.photos/seed/c3/100/100",
         stationId: station1.id,
@@ -143,6 +144,7 @@ async function main() {
       data: {
         openid: "wx_customer_004",
         phone: "13900004444",
+        password: defaultPassword,
         nickname: "小赵",
         avatarUrl: "https://picsum.photos/seed/c4/100/100",
         stationId: station1.id,
@@ -152,6 +154,7 @@ async function main() {
       data: {
         openid: "wx_customer_005",
         phone: "13900005555",
+        password: defaultPassword,
         nickname: "小陈",
         avatarUrl: "https://picsum.photos/seed/c5/100/100",
         stationId: station2.id,

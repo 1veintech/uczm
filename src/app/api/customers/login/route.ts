@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 import { verifyCode } from "@/lib/sms";
 
 export async function POST(request: NextRequest) {
@@ -44,10 +45,12 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      const defaultPassword = await bcrypt.hash("123456", 10);
       customer = await prisma.customer.create({
         data: {
           openid: `sms_${phone}`,
           phone,
+          password: defaultPassword,
           nickname: `用户${phone.slice(-4)}`,
           stationId: station.id,
         },

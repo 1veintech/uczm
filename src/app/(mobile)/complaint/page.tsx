@@ -24,11 +24,13 @@ export default function ComplaintPage() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const previewsRef = useRef<string[]>([]);
+  previewsRef.current = imagePreviews;
 
   // 清理预览 URL 防止内存泄漏
   useEffect(() => {
     return () => {
-      imagePreviews.forEach((url) => {
+      previewsRef.current.forEach((url) => {
         if (url.startsWith("blob:")) URL.revokeObjectURL(url);
       });
     };

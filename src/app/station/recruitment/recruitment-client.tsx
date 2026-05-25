@@ -34,6 +34,8 @@ import {
   Phone,
   DollarSign,
   BriefcaseBusiness,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -83,6 +85,7 @@ export default function RecruitmentClient({ jobs }: RecruitmentClientProps) {
   }>({});
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [updatingAppId, setUpdatingAppId] = useState<string | null>(null);
 
   // Form state
   const [formTitle, setFormTitle] = useState("");
@@ -145,6 +148,29 @@ export default function RecruitmentClient({ jobs }: RecruitmentClientProps) {
     setFormSalary("");
     setFormLocation("");
     setFormPhone("");
+  };
+
+  const handleUpdateApplicationStatus = async (applicationId: string, status: string) => {
+    const actionLabel = status === "HIRED" ? "录用" : "拒绝";
+    setUpdatingAppId(applicationId);
+    try {
+      const res = await fetch(`/api/job-applications/${applicationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (res.ok) {
+        toast.success(`已${actionLabel}`);
+        window.location.reload();
+      } else {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || `${actionLabel}失败`);
+      }
+    } catch {
+      toast.error(`${actionLabel}失败，请重试`);
+    } finally {
+      setUpdatingAppId(null);
+    }
   };
 
   return (
@@ -470,31 +496,57 @@ export default function RecruitmentClient({ jobs }: RecruitmentClientProps) {
                 {selectedJob?.applications.map((app) => (
                   <div
                     key={app.id}
-                    className="flex items-center justify-between rounded-lg border border-gray-100 p-3 hover:bg-gray-50 transition-colors"
+                    className="rounded-lg border border-gray-100 p-3 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100">
-                        <Users className="h-4 w-4 text-gray-400" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100">
+                          <Users className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{app.name}</p>
+                          <p className="text-xs text-gray-400 flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            {app.phone}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{app.name}</p>
-                        <p className="text-xs text-gray-400 flex items-center gap-1">
-                          <Phone className="h-3 w-3" />
-                          {app.phone}
+                      <div className="text-right">
+                        <Badge
+                          className={`text-xs ${STATUS_COLORS[app.status] ?? ""}`}
+                          variant="outline"
+                        >
+                          {APP_STATUS_LABELS[app.status] ?? app.status}
+                        </Badge>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {format(new Date(app.createdAt), "MM-dd HH:mm")}
                         </p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <Badge
-                        className={`text-xs ${STATUS_COLORS[app.status] ?? ""}`}
-                        variant="outline"
-                      >
-                        {APP_STATUS_LABELS[app.status] ?? app.status}
-                      </Badge>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {format(new Date(app.createdAt), "MM-dd HH:mm")}
-                      </p>
-                    </div>
+                    {app.status === "PENDING" && (
+                      <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:border-emerald-300"
+                          disabled={updatingAppId === app.id}
+                          onClick={() => handleUpdateApplicationStatus(app.id, "HIRED")}
+                        >
+                          <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                          {updatingAppId === app.id ? "处理中..." : "录用"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300"
+                          disabled={updatingAppId === app.id}
+                          onClick={() => handleUpdateApplicationStatus(app.id, "REJECTED")}
+                        >
+                          <XCircle className="mr-1.5 h-3.5 w-3.5" />
+                          {updatingAppId === app.id ? "处理中..." : "不合适"}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -7,6 +7,7 @@ export default async function AdminStationsPage() {
   const [stations, agents] = await Promise.all([
     prisma.station.findMany({
       include: {
+        user: { select: { id: true } },
         agent: { select: { id: true, name: true, region: true } },
         _count: {
           select: { customers: true, orders: true },
@@ -22,6 +23,7 @@ export default async function AdminStationsPage() {
 
   const data = stations.map((s) => ({
     id: s.id,
+    userId: s.userId,
     name: s.name,
     agentId: s.agentId,
     agentName: s.agent?.name || "未分配",

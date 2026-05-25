@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import crypto from "crypto";
 import { requireAdmin } from "@/lib/api-auth";
 
 export async function POST(request: Request) {
@@ -16,9 +15,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "请填写完整信息" }, { status: 400 });
     }
 
-    const email = `agent_${crypto.randomUUID().slice(0, 8)}@ddcm.com`;
-    const tempPassword = crypto.randomBytes(8).toString("hex");
-    const password = await bcrypt.hash(tempPassword, 10);
+    const email = `agent_${phone}@ddcm.com`;
+    const password = await bcrypt.hash("123456", 10);
 
     const user = await prisma.user.create({
       data: {
@@ -43,8 +41,6 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       agent,
-      // 返回临时密码，由管理员通过安全渠道告知代理
-      tempPassword,
     });
   } catch (error) {
     console.error("Create agent error:", error);

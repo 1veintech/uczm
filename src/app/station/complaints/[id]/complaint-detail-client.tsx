@@ -89,7 +89,8 @@ export default function ComplaintDetailClient({
         toast.success("处理成功");
         router.refresh();
       } else {
-        toast.error("处理失败");
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "处理失败");
       }
     } catch {
       toast.error("处理失败，请重试");

@@ -11,6 +11,7 @@ import {
   Clock,
   Ban,
   MapPin,
+  RotateCcw,
 } from "lucide-react";
 import {
   Card,
@@ -50,6 +51,7 @@ import {
 
 interface StationData {
   id: string;
+  userId: string;
   name: string;
   agentId: string | null;
   agentName: string;
@@ -93,6 +95,20 @@ export function AdminStationsClient({ stations, agents }: { stations: StationDat
     approved: stations.filter((s) => s.status === "APPROVED").length,
     pending: stations.filter((s) => s.status === "PENDING").length,
     disabled: stations.filter((s) => s.status === "DISABLED").length,
+  };
+
+  const handleResetPassword = async (userId: string) => {
+    const res = await fetch("/api/admin/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      toast.success("密码已重置为 123456");
+    } else {
+      toast.error(data.error || "重置失败");
+    }
   };
 
   const openRegionDialog = (station: StationData) => {
@@ -228,6 +244,9 @@ export function AdminStationsClient({ stations, agents }: { stations: StationDat
                         title="修改负责区域"
                       >
                         <MapPin className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon-xs" className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10" title="重置密码" onClick={() => handleResetPassword(station.userId)}>
+                        <RotateCcw className="h-4 w-4" />
                       </Button>
                       <Button variant="ghost" size="icon-xs" className="text-zinc-400 hover:text-zinc-200"><Eye className="h-4 w-4" /></Button>
                     </div>

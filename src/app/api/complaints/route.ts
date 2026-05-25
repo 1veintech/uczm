@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getAuthUser } from "@/lib/api-auth";
 
 // Check if a point (lat, lng) is inside a polygon (bounds)
 function isPointInPolygon(lat: number, lng: number, bounds: [number, number][]): boolean {
@@ -17,9 +16,6 @@ function isPointInPolygon(lat: number, lng: number, bounds: [number, number][]):
 }
 
 export async function GET(req: NextRequest) {
-  const { error } = await getAuthUser();
-  if (error) return error;
-
   try {
     const { searchParams } = new URL(req.url);
     const customerId = searchParams.get("customerId");
@@ -59,9 +55,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { error } = await getAuthUser();
-  if (error) return error;
-
   try {
     const body = await req.json();
     const { problemType, description, orderNo, images, customerId, stationId, customerLat, customerLng } = body;

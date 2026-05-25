@@ -189,9 +189,9 @@ export function JobsClient({ jobs }: { jobs: JobItem[] }) {
       </section>
 
       {showSheet && (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-[60]">
           <div className="absolute inset-0 bg-slate-950/45" onClick={() => setShowSheet(false)} />
-          <div className="absolute bottom-0 left-0 right-0 mx-auto max-w-md rounded-t-lg border border-white/70 bg-white px-5 pb-8 pt-5 shadow-2xl animate-slide-up">
+          <div className="absolute bottom-0 left-0 right-0 mx-auto max-w-md rounded-t-lg border border-white/70 bg-white px-5 pb-[max(32px,env(safe-area-inset-bottom))] pt-5 shadow-2xl animate-slide-up">
             <div className="mb-4 flex justify-center">
               <div className="h-1 w-10 rounded-full bg-slate-200" />
             </div>

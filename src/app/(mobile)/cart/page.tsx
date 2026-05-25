@@ -1,15 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/hooks/use-cart";
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, getTotal } = useCart();
+  const { items, removeItem, updateQuantity } = useCart();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(
     new Set(items.map((i) => i.productId))
   );
+
+  // 同步：商品被删除后，移除已不存在的选中项
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      const productIds = new Set(items.map((i) => i.productId));
+      let changed = false;
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (productIds.has(id)) {
+          next.add(id);
+        } else {
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [items]);
 
   const toggleSelect = (productId: string) => {
     const next = new Set(selectedIds);

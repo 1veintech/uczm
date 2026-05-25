@@ -154,6 +154,7 @@ model Customer {
   id        String   @id @default(cuid())
   openid    String   @unique
   phone     String
+  password  String?  // bcrypt hash，可为空（验证码注册的用户）
   nickname  String?
   avatarUrl String?
   stationId String

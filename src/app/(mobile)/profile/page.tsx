@@ -9,6 +9,7 @@ import {
   ChevronRight,
   CreditCard,
   Info,
+  KeyRound,
   LockKeyhole,
   LogOut,
   MapPin,
@@ -22,7 +23,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useCart } from "@/hooks/use-cart";
+import { useCartItemCount } from "@/hooks/use-cart";
 
 interface UserInfo {
   nickname: string;
@@ -50,7 +51,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<UserInfo | null>(null);
   const [orderCounts, setOrderCounts] = useState<Record<string, number>>({});
   const [serviceRange, setServiceRange] = useState("未登录");
-  const itemCount = useCart((s) => s.getItemCount());
+  const itemCount = useCartItemCount();
 
   useEffect(() => {
     const saved = localStorage.getItem("c_user");
@@ -239,6 +240,15 @@ export default function ProfilePage() {
                   <p className="text-[11px] text-slate-500">订单、售后和报名进度提醒</p>
                 </div>
               </div>
+              {user && (
+                <Link href="/profile/change-password" className="flex items-center gap-3 rounded-lg bg-slate-50 p-3" onClick={() => setShowSettings(false)}>
+                  <KeyRound size={17} className="text-amber-600" />
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">修改密码</p>
+                    <p className="text-[11px] text-slate-500">修改您的登录密码</p>
+                  </div>
+                </Link>
+              )}
               {user ? (
                 <button onClick={handleLogout} className="flex w-full items-center justify-center gap-2 rounded-lg bg-rose-50 py-3 text-sm font-semibold text-rose-500">
                   <LogOut size={16} />

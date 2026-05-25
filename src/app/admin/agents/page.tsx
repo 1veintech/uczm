@@ -18,6 +18,7 @@ export default async function AdminAgentsPage() {
 
   const data = agents.map((a) => ({
     id: a.id,
+    userId: a.userId,
     name: a.name,
     phone: a.phone,
     region: a.region,

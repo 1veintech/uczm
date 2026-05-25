@@ -9,7 +9,6 @@ import {
   CheckCircle,
   XCircle,
   Eye,
-  Copy,
   Filter,
   MapPin,
 } from "lucide-react";
@@ -44,6 +43,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   STATION_STATUS_LABELS,
   PLAN_TYPE_LABELS,
@@ -66,8 +66,9 @@ interface StationData {
 export function StationsClient({ stations, agentRegion, agentId }: { stations: StationData[]; agentRegion: string; agentId?: string }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteCopied, setInviteCopied] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newStation, setNewStation] = useState({ name: "", phone: "", address: "" });
+  const [creating, setCreating] = useState(false);
   const [regionDialogOpen, setRegionDialogOpen] = useState(false);
   const [editingStation, setEditingStation] = useState<StationData | null>(null);
   const [regionAction, setRegionAction] = useState<"assign" | "remove">("assign");
@@ -83,10 +84,28 @@ export function StationsClient({ stations, agentRegion, agentId }: { stations: S
     return matchSearch && matchStatus;
   });
 
-  const handleCopyInvite = () => {
-    navigator.clipboard.writeText("https://ddcm.com/invite/abc123");
-    setInviteCopied(true);
-    setTimeout(() => setInviteCopied(false), 2000);
+  const handleCreateStation = async () => {
+    setCreating(true);
+    try {
+      const res = await fetch("/api/agent/stations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newStation),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("创建成功，初始密码为 123456");
+        setCreateOpen(false);
+        setNewStation({ name: "", phone: "", address: "" });
+        window.location.reload();
+      } else {
+        toast.error(data.error || "创建失败");
+      }
+    } catch {
+      toast.error("网络错误，请重试");
+    } finally {
+      setCreating(false);
+    }
   };
 
   const openRegionDialog = (station: StationData, action: "assign" | "remove") => {
@@ -128,44 +147,38 @@ export function StationsClient({ stations, agentRegion, agentId }: { stations: S
           <h1 className="text-2xl font-bold text-white">站长管理</h1>
           <p className="text-sm text-zinc-400 mt-1">管理辖区内所有站长信息 · 区域: {agentRegion}</p>
         </div>
-        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger>
             <Button className="bg-gradient-to-r from-[#FF6B35] to-[#E55A2B] hover:from-[#FF8F65] hover:to-[#FF6B35] text-white border-0">
               <Plus className="mr-2 h-4 w-4" />
-              邀请站长
+              创建站长
             </Button>
           </DialogTrigger>
           <DialogContent className="bg-zinc-900 border-zinc-800">
             <DialogHeader>
-              <DialogTitle className="text-white">邀请新站长</DialogTitle>
+              <DialogTitle className="text-white">创建新站长</DialogTitle>
               <DialogDescription>
-                分享以下邀请链接给新站长，注册后自动关联到您的辖区
+                填写站长信息完成创建，默认密码为 123456
               </DialogDescription>
             </DialogHeader>
-            <div className="flex items-center gap-2 rounded-lg bg-zinc-800 p-3">
-              <code className="flex-1 text-sm text-zinc-300 overflow-hidden text-ellipsis whitespace-nowrap">
-                https://ddcm.com/invite/abc123
-              </code>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={handleCopyInvite}
-                className="shrink-0"
-              >
-                {inviteCopied ? (
-                  <CheckCircle className="h-4 w-4 text-green-400" />
-                ) : (
-                  <Copy className="h-4 w-4 text-zinc-400" />
-                )}
-              </Button>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-zinc-300">站长名称</Label>
+                <Input value={newStation.name} onChange={(e) => setNewStation({ ...newStation, name: e.target.value })} placeholder="请输入站长名称" className="mt-2 bg-zinc-800 border-zinc-700 text-zinc-200" />
+              </div>
+              <div>
+                <Label className="text-zinc-300">手机号</Label>
+                <Input value={newStation.phone} onChange={(e) => setNewStation({ ...newStation, phone: e.target.value })} placeholder="请输入手机号" className="mt-2 bg-zinc-800 border-zinc-700 text-zinc-200" />
+              </div>
+              <div>
+                <Label className="text-zinc-300">站点地址</Label>
+                <Input value={newStation.address} onChange={(e) => setNewStation({ ...newStation, address: e.target.value })} placeholder="请输入站点地址" className="mt-2 bg-zinc-800 border-zinc-700 text-zinc-200" />
+              </div>
             </div>
             <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setInviteOpen(false)}
-                className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-              >
-                关闭
+              <Button variant="outline" onClick={() => setCreateOpen(false)} className="border-zinc-700 text-zinc-300 hover:bg-zinc-800">取消</Button>
+              <Button className="bg-gradient-to-r from-[#FF6B35] to-[#E55A2B] text-white border-0" disabled={!newStation.name || !newStation.phone || !newStation.address || creating} onClick={handleCreateStation}>
+                {creating ? "创建中..." : "创建"}
               </Button>
             </DialogFooter>
           </DialogContent>

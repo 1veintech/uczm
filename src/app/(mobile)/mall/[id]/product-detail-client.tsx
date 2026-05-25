@@ -158,7 +158,7 @@ export function ProductDetailClient({ product }: { product: ProductData }) {
       </div>
 
       {/* Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 mini-bottom-bar px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
+      <div className="fixed bottom-16 left-0 right-0 z-50 mini-bottom-bar px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom))]">
         <div className="max-w-md mx-auto flex items-center gap-3">
           <Link
             href="/cart"

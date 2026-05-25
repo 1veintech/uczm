@@ -55,10 +55,10 @@ export const WITHDRAWAL_STATUS_LABELS: Record<string, string> = {
 };
 
 export const RESOLVE_TYPES = [
-  { value: "refund", label: "私下补款" },
-  { value: "replace", label: "补货" },
-  { value: "coupon", label: "下次抵扣" },
-  { value: "other", label: "其他" },
+  { value: "私下补款", label: "私下补款" },
+  { value: "补货", label: "补货" },
+  { value: "下次抵扣", label: "下次抵扣" },
+  { value: "其他", label: "其他" },
 ];
 
 export const LOGISTICS_COMPANIES = [

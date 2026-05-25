@@ -98,7 +98,8 @@ export default function ComplaintsClient({ complaints }: ComplaintsClientProps) 
         setResolveRemark("");
         window.location.reload();
       } else {
-        toast.error("处理失败");
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "处理失败");
       }
     } catch {
       toast.error("处理失败，请重试");

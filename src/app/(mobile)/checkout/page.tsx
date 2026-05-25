@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowLeft, MapPin, Loader2, CheckCircle2, ChevronDown, Check } from "lucide-react";
+import { ArrowLeft, MapPin, Loader2, CheckCircle2, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCart } from "@/hooks/use-cart";
+import { useCart, useCartTotal } from "@/hooks/use-cart";
 import { toast } from "sonner";
 
 interface SavedAddress {
@@ -20,7 +20,8 @@ interface SavedAddress {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, getTotal, clearCart } = useCart();
+  const { items, clearCart } = useCart();
+  const total = useCartTotal();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -30,8 +31,18 @@ export default function CheckoutPage() {
   const [showAddressPicker, setShowAddressPicker] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
 
-  // Load saved addresses and auto-fill default
+  // Load logged-in user info and saved addresses
   useEffect(() => {
+    // Pre-fill phone from logged-in customer
+    const userStr = localStorage.getItem("c_user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user?.phone) setPhone(user.phone);
+        if (user?.nickname) setName(user.nickname);
+      } catch {}
+    }
+
     const saved = localStorage.getItem("c_addresses");
     if (saved) {
       try {
@@ -78,8 +89,6 @@ export default function CheckoutPage() {
     }
   };
 
-  const total = getTotal();
-
   const handlePay = async () => {
     if (!name.trim()) {
       toast.error("请填写收货人姓名");
@@ -99,6 +108,16 @@ export default function CheckoutPage() {
 
     setPaying(true);
     try {
+      // 从登录信息获取客户手机号
+      let customerPhone = "";
+      try {
+        const userStr = localStorage.getItem("c_user");
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          customerPhone = user?.phone || "";
+        }
+      } catch {}
+
       const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -106,6 +125,7 @@ export default function CheckoutPage() {
           receiverName: name,
           receiverPhone: phone,
           receiverAddress: address,
+          customerPhone,
           items: items.map((item) => ({
             productId: item.productId,
             name: item.name,
@@ -309,7 +329,7 @@ export default function CheckoutPage() {
       </div>
 
       {/* Bottom Pay Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 mini-bottom-bar px-4 py-3 pb-[env(safe-area-inset-bottom)]">
+      <div className="fixed bottom-16 left-0 right-0 z-50 mini-bottom-bar px-4 py-3 pb-[env(safe-area-inset-bottom)]">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500">需支付</p>

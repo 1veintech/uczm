@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
-import { getAuthUser } from "@/lib/api-auth";
 import crypto from "crypto";
 
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
@@ -11,9 +10,6 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5MB per file
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 export async function POST(request: Request) {
-  const { error } = await getAuthUser();
-  if (error) return error;
-
   try {
     if (!existsSync(UPLOAD_DIR)) {
       await mkdir(UPLOAD_DIR, { recursive: true });

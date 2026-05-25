@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   UserCheck,
@@ -9,6 +10,7 @@ import {
   CreditCard,
   DollarSign,
   Settings,
+  KeyRound,
   Menu,
   Bell,
   Crown,
@@ -40,6 +42,7 @@ const NAV_SECTIONS = [
     title: "系统管理",
     items: [
       { href: "/admin/system", label: "系统配置", icon: Settings },
+      { href: "/admin/settings", label: "个人设置", icon: KeyRound },
     ],
   },
 ];
@@ -108,10 +111,7 @@ function SidebarContent({ className }: { className?: string }) {
             <span className="text-xs text-slate-500">admin@ddcm.com</span>
           </div>
           <button
-            onClick={() => {
-              localStorage.clear();
-              window.location.href = "/home";
-            }}
+            onClick={() => signOut({ callbackUrl: "/home" })}
             className="rounded-md p-1.5 text-slate-500 hover:bg-white/10 hover:text-red-400 transition-colors"
             title="退出登录"
           >

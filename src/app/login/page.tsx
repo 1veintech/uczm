@@ -81,10 +81,10 @@ export default function LoginPage() {
             <div>
               <label className="block text-xs font-medium text-slate-400 mb-2">账号</label>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="请输入管理员邮箱"
+                placeholder="请输入手机号或邮箱"
                 className="w-full px-4 py-3.5 rounded-xl bg-slate-800/50 border border-white/10 text-white text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50 transition-all"
               />
             </div>

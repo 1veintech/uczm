@@ -30,13 +30,11 @@ interface CartStore {
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  getTotal: () => number;
-  getItemCount: () => number;
 }
 
 export const useCart = create<CartStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       items: [],
       addItem: (item, quantity = 1) => {
         set((state) => {
@@ -68,13 +66,17 @@ export const useCart = create<CartStore>()(
         }));
       },
       clearCart: () => set({ items: [] }),
-      getTotal: () => {
-        return get().items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-      },
-      getItemCount: () => {
-        return get().items.reduce((sum, item) => sum + item.quantity, 0);
-      },
     }),
     { name: getCartStorageKey() }
   )
 );
+
+/** 购物车商品总件数 */
+export function useCartItemCount(): number {
+  return useCart((s) => s.items.reduce((sum, item) => sum + item.quantity, 0));
+}
+
+/** 购物车总价 */
+export function useCartTotal(): number {
+  return useCart((s) => s.items.reduce((sum, item) => sum + item.price * item.quantity, 0));
+}

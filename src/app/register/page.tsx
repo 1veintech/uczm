@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Eye,
@@ -26,6 +26,13 @@ export default function RegisterPage() {
   const [countdown, setCountdown] = useState(0);
   const [devCode, setDevCode] = useState("");
   const [error, setError] = useState("");
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
 
   const handleSendCode = async () => {
     if (phone.length !== 11) {
@@ -49,10 +56,11 @@ export default function RegisterPage() {
         if (data.code) {
           setDevCode(data.code);
         }
-        const timer = setInterval(() => {
+        if (timerRef.current) clearInterval(timerRef.current);
+        timerRef.current = setInterval(() => {
           setCountdown((prev) => {
             if (prev <= 1) {
-              clearInterval(timer);
+              if (timerRef.current) clearInterval(timerRef.current);
               return 0;
             }
             return prev - 1;
@@ -91,24 +99,22 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      // 验证验证码
-      const res = await fetch("/api/sms/verify", {
+      const res = await fetch("/api/customers/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, code }),
+        body: JSON.stringify({ phone, code, password, nickname }),
       });
       const data = await res.json();
 
       if (data.success) {
-        // 注册成功，自动登录
         const userInfo = {
-          nickname: nickname || `用户${phone.slice(-4)}`,
+          nickname: data.customer?.nickname || nickname || `用户${phone.slice(-4)}`,
           phone,
         };
         localStorage.setItem("c_user", JSON.stringify(userInfo));
         router.push("/");
       } else {
-        setError(data.message || "验证码错误");
+        setError(data.message || "注册失败");
         setLoading(false);
       }
     } catch {

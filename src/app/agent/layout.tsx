@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import {
   LayoutDashboard,
   Users,
@@ -13,6 +14,7 @@ import {
   Shield,
   LogOut,
   Map,
+  KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -37,9 +39,16 @@ const NAV_SECTIONS = [
       { href: "/agent/materials", label: "营销物料", icon: Megaphone },
     ],
   },
+  {
+    title: "其他",
+    items: [
+      { href: "/agent/settings", label: "个人设置", icon: KeyRound },
+    ],
+  },
 ];
 
 function SidebarContent({ className }: { className?: string }) {
+  const { data: session } = useSession();
   const pathname = usePathname();
 
   return (
@@ -98,15 +107,12 @@ function SidebarContent({ className }: { className?: string }) {
           </div>
           <div className="flex flex-col flex-1 min-w-0">
             <span className="text-sm font-medium text-slate-200 truncate">
-              默认代理
+              {session?.user?.name ?? "代理"}
             </span>
-            <span className="text-xs text-slate-500">agent@ddcm.com</span>
+            <span className="text-xs text-slate-500">{session?.user?.email ?? ""}</span>
           </div>
           <button
-            onClick={() => {
-              localStorage.clear();
-              window.location.href = "/home";
-            }}
+            onClick={() => signOut({ callbackUrl: "/home" })}
             className="rounded-md p-1.5 text-slate-500 hover:bg-white/10 hover:text-red-400 transition-colors"
             title="退出登录"
           >
@@ -123,6 +129,7 @@ export default function AgentLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { data: session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
