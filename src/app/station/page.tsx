@@ -23,11 +23,14 @@ export default function StationDashboard() {
     })
       .then((res) => {
         if (!res.ok) {
-          throw new Error("Failed to fetch data");
+          throw new Error(`HTTP ${res.status}`);
         }
         return res.json();
       })
       .then((data) => {
+        if (data.error) {
+          throw new Error(data.error);
+        }
         setData(data);
         setLoading(false);
       })
@@ -37,10 +40,10 @@ export default function StationDashboard() {
       });
   }, [session, status]);
 
-  if (status === "loading" || loading) {
+  if (status === "loading") {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-zinc-400">加载中...</p>
+        <p className="text-zinc-400">正在验证登录状态...</p>
       </div>
     );
   }
@@ -49,6 +52,14 @@ export default function StationDashboard() {
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-zinc-400">请先登录</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-zinc-400">加载站点数据中...</p>
       </div>
     );
   }
