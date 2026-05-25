@@ -100,7 +100,7 @@ export default function HomePage() {
                 </div>
               </div>
               <a
-                href="#home-login"
+                href="/login"
                 className="inline-flex h-9 items-center gap-2 rounded-lg bg-white px-3 text-sm font-medium text-slate-900 shadow-xl shadow-blue-950/20 transition hover:bg-sky-50"
               >
                 登录
